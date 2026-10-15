@@ -64,6 +64,11 @@ def dot(expr z) = fill fullcircle scaled 3pt shifted z enddef;
 % 점 z에 작은 흰 원을 찍는다
 def odot(expr z) = unfill fullcircle scaled 3.4pt shifted z;
   draw fullcircle scaled 3.4pt shifted z withpen pencircle scaled .4pt enddef;
+% 라벨 뒤의 선을 지우고 라벨을 찍는다(라벨을 비킬 자리가 없을 때 쓴다)
+vardef clabel@#(expr s, z) =
+  save q; picture q; q := thelabel@#(s, z);
+  interim bboxmargin := .8pt; unfill bbox q; draw q
+enddef;
 % 중심 c, 반지름 r로 각 a에서 각 b까지 가는 호
 vardef anglearc(expr c, a, b, r) =
   for t = 0 step .125 until .9: (c + r*dir(a + t*(b-a))) .. endfor (c + r*dir b)
@@ -3205,9 +3210,9 @@ draw (0,0)--m dashed withdots scaled .5;
 draw p--q withpen pencircle scaled .2pt dashed evenly scaled .5;
 draw subpath(0, 1.2) of fullcircle scaled (2*abs p) withpen pencircle scaled .2pt;
 dot(p); dot(q); dot(m);
-label.top(btex $(a,b)$ etex, p);
-label.lrt(btex $(a',b')$ etex, q);
-label.rt(btex $(a,b/2)$ etex, m);
+label.urt(btex $(a,b)$ etex, p);
+label.ulft(btex $(a',b')$ etex, q);
+clabel.rt(btex $(a,b/2)$ etex, m);
 endfig;
 \endmplibcode$$
 코드에서 |r|은 먼저 $b^2/a^2$이 되고, 그다음 $r/(4+r)=b^2/(4a^2+b^2)$이 된다. 새 값은
@@ -6363,11 +6368,11 @@ nd10 = boxed(btex \strut\.{x20} etex, z10);
 nd11 = boxed(btex \strut\.{x20} etex, z11);
 nd12 = boxed(btex \strut\.{x20[]} etex, z12);
 nd13 = boxed(btex \strut\.{x20b} etex, z13);
-label.lft(btex $p$ etex, westof(nd1)); label.lft(btex $q$ etex, westof(nd2));
+label.top(btex $p$ etex, northof(nd1)); label.lft(btex $q$ etex, westof(nd2));
 label.ulft(btex $q_1$ etex, ulcorner bbox nd3); label.top(btex $q_2$ etex, northof(nd4));
 label.lft(btex $qq$ etex, westof(nd6)); label.top(btex $qq_1$ etex, northof(nd7));
 label.top(btex $qq_2$ etex, northof(nd8));
-label.lft(btex $r$ etex, westof(nd9)); label.urt(btex $r_1$ etex, urcorner bbox nd10);
+label.top(btex $r$ etex, northof(nd9)); label.urt(btex $r_1$ etex, urcorner bbox nd10);
 label.lft(btex $qqq$ etex, westof(nd11)); label.top(btex $qqq_1$ etex, northof(nd12));
 label.top(btex $qqq_2$ etex, northof(nd13));
 % link
@@ -6389,8 +6394,10 @@ drawarrow southof(nd3)--northof(nd6) withpen pencircle scaled 1.2pt;
 drawarrow southof(nd10)--northof(nd11) withpen pencircle scaled 1.2pt;
 % subscrHead
 drawarrow westof(nd1){left}..{down}(-.5u,-2v)..{right}westof(nd9) dashed withdots scaled .6;
-drawarrow (southof(nd3)+(-10pt,0)){down}..{right}westof(nd7) dashed withdots scaled .6;
-drawarrow (southof(nd10)+(-10pt,0)){down}..(1.3u,-4.7v)..{up}southof(nd12) dashed withdots scaled .6;
+drawarrow (southof(nd3)+(-10pt,0)){down}..(westof(nd6)-(8pt,0))..(southof(nd6)-(0,7pt))
+  ..{right}westof(nd7) dashed withdots scaled .6;
+drawarrow (southof(nd10)+(-10pt,0)){down}..(westof(nd11)-(8pt,0))..(southof(nd11)-(0,7pt))
+  ..(1.5u,-4.75v)..{up}southof(nd12) dashed withdots scaled .6;
 endfig;
 \endmplibcode$$
 
@@ -7639,11 +7646,11 @@ draw z1--(z1 + 1.6u*dir a) dashed evenly withcolor .65white;
 draw (z1 - 1.3u*dir dt)--(z1 + 1.9u*dir dt) withpen pencircle scaled .3pt;
 draw c withpen pencircle scaled 1.1pt;
 drawarrow anglearc(z1, a, b, 1.45u) withpen pencircle scaled .4pt;
-label.urt(btex $\psi_k$ etex, z1 + 1.45u*dir(.7[a,b]));
+label(btex $\psi_k$ etex, z1 + 1.45u*dir(a - 7));
 drawarrow anglearc(z1, dt, a, .95u) withpen pencircle scaled .4pt;
-label.rt(btex $\phi_k$ etex, z1 + .95u*dir(.5[a,dt]));
+label(btex $\phi_k$ etex, z1 + 1.2u*dir(.5[a,dt]));
 drawarrow anglearc(z1, b, dt, 1.15u) withpen pencircle scaled .4pt;
-label.top(btex $\theta_k$ etex, z1 + 1.15u*dir(.5[b,dt]));
+label(btex $\theta_k$ etex, z1 + 1.15u*dir(b + 13));
 dot(z0); dot(z1); dot(z2);
 label.bot(btex $z_{k-1}$ etex, z0); label.bot(btex $z_k$ etex, z1); label.rt(btex $z_{k+1}$ etex, z2);
 endfig;
@@ -8292,7 +8299,7 @@ label.bot(btex $z_0$ etex, a); label.ulft(btex $z_1$ etex, b);
 label.urt(btex $z_2$ etex, c); label.bot(btex $z_3$ etex, d);
 label.lft(btex $z_0^{(1)}$ etex, ab); label.top(btex $z_1^{(1)}$ etex, bc);
 label.rt(btex $z_2^{(1)}$ etex, cd);
-label.lft(btex $z_0^{(2)}$ etex, abc); label.rt(btex $z_1^{(2)}$ etex, bcd);
+label.ulft(btex $z_0^{(2)}$ etex, abc); label.urt(btex $z_1^{(2)}$ etex, bcd);
 label.bot(btex $z_0^{(3)}$ etex, m);
 endfig;
 \endmplibcode$$
@@ -13993,14 +14000,15 @@ $(2,-1)$, $\ldots$은 동치류~1에 속하며, 두 직선 사이의 거리는 $
 $$\mplibcode
 beginfig(20);
 save u; numeric u; u := 20pt;
-for m = -3 upto 4: for n = -2 upto 3:
-  dot((m,n) scaled u);
-  label.urt(textext("\sevenrm " & decimal(2m+3n)), (m,n) scaled u);
-endfor endfor
 for k = 0, 1, 2:
   draw ((-3.4, (k + 6.8)/3)--(4.4, (k - 8.8)/3)) scaled u dashed evenly withpen pencircle scaled .4pt;
 endfor
 drawarrow (0,0)--(2u,3u) withpen pencircle scaled .7pt;
+for m = -3 upto 4: for n = -2 upto 3:
+  if (m,n) = (0,0): clabel.llft else: clabel.urt fi  % 원점의 라벨은 화살표를 비킨다
+    (textext("\sevenrm " & decimal(2m+3n)), (m,n) scaled u);
+  dot((m,n) scaled u);
+endfor endfor
 endfig;
 \endmplibcode$$
 
@@ -21308,7 +21316,7 @@ $a=\bigl((a+b)+(a-b)\bigr)/2$이고 $\theta=\bigl((\theta+\phi)+(\theta-\phi)\bi
 $$\mplibcode
 beginfig(22);
 save u, T, a, b, phi, theta, c, p, q; numeric u, a, b, phi, theta; transform T; pair c, p, q;
-u := 28pt; a := 1.7; b := .8; phi := -30; theta := 30;
+u := 32pt; a := 1.7; b := .8; phi := -30; theta := 30;
 c := (6.6u, 0);
 T := identity rotated phi xscaled a yscaled b rotated theta shifted c;
 draw fullcircle scaled 2u;
@@ -21325,16 +21333,16 @@ draw c -- (c - (1.9u,0)) dashed evenly withcolor .5white;
 draw c -- (c + a*u*dir(theta+180)) dashed withdots withcolor .3white;
 draw c -- (c + b*u*dir(theta+270)) dashed withdots withcolor .3white;
 draw anglearc(c, 180, 180+theta, .6u) withpen pencircle scaled .4pt;
-label(btex $\theta$ etex, c + 1.0u*dir(180+.5theta) + (0,-1pt));
+label(btex $\theta$ etex, c + 1.05u*dir(180+.5theta));
 label.lrt(btex $a$ etex, c + .5a*u*dir(theta+180));
 label.rt(btex $b$ etex, c + .5b*u*dir(theta+270));
 p := (u,0) transformed T; q := (0,u) transformed T;
 drawarrow c -- p withpen pencircle scaled .4pt;
 drawarrow c -- q withpen pencircle scaled .4pt;
 dot(c); dot(p); dot(q);
-label.ulft(btex $(u,v)$ etex, c);
+label.ulft(btex $(u,v)$ etex, c + (0,2pt));
 label.rt(btex $(A{+}u,B{+}v)$ etex, p);
-label.top(btex $(C{+}u,D{+}v)$ etex, q);
+label.ulft(btex $(C{+}u,D{+}v)$ etex, q);
 endfig;
 \endmplibcode$$
 
