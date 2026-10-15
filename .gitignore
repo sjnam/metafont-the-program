@@ -1,0 +1,34 @@
+# make build: gtangle이 뽑은 Go 소스와 실행 파일, 기반 파일
+mf.go
+build/
+
+# make pdf: gweave와 luatex가 만든 것
+mf.tex
+mf.log
+mf.pdf
+mf.toc
+mf.ref
+mf.idx
+mf.scn
+
+# make deco: 액자를 두른 판
+mf-deco.tex
+mf-deco.log
+mf-deco.pdf
+mf-deco.toc
+mf-deco.ref
+
+.DS_Store
+
+# make trap: tests/trap.sh가 처음 돌 때 CTAN에서 받아 오는 크누스의 원본 파일들
+tests/trap/
+
+# 원본 mf.web을 weave/tex로 조판해 본 것
+orig/mf.tex
+orig/mf.log
+orig/mf.dvi
+orig/mf.pdf
+orig/CONTENTS.tex
+
+# 편집기 임시 파일
+*.swp
