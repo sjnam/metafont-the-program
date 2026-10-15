@@ -3466,17 +3466,17 @@ specAtan[26] = 1
 보면 이웃한 팔분면끼리는 비트 하나만 다르다.
 $$\mplibcode
 beginfig(4);
-save u; numeric u; u := 52pt;
+save u; numeric u; u := 76pt;
 for k = 0 upto 3: draw (dir(45k)*-1.15u)--(dir(45k)*1.15u) withpen pencircle scaled .3pt; endfor
 draw fullcircle scaled 2.3u withpen pencircle scaled .3pt;
-label(btex \vbox{\halign{\hfil#\hfil\cr 첫째\cr 1\cr}} etex, dir(22.5)*.72u);
-label(btex \vbox{\halign{\hfil#\hfil\cr 둘째\cr 5\cr}} etex, dir(67.5)*.72u);
-label(btex \vbox{\halign{\hfil#\hfil\cr 셋째\cr 6\cr}} etex, dir(112.5)*.72u);
-label(btex \vbox{\halign{\hfil#\hfil\cr 넷째\cr 2\cr}} etex, dir(157.5)*.72u);
-label(btex \vbox{\halign{\hfil#\hfil\cr 다섯째\cr 4\cr}} etex, dir(202.5)*.72u);
-label(btex \vbox{\halign{\hfil#\hfil\cr 여섯째\cr 8\cr}} etex, dir(247.5)*.72u);
-label(btex \vbox{\halign{\hfil#\hfil\cr 일곱째\cr 7\cr}} etex, dir(292.5)*.72u);
-label(btex \vbox{\halign{\hfil#\hfil\cr 여덟째\cr 3\cr}} etex, dir(337.5)*.72u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr 첫째\cr 1\cr}} etex, dir(22.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr 둘째\cr 5\cr}} etex, dir(67.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr 셋째\cr 6\cr}} etex, dir(112.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr 넷째\cr 2\cr}} etex, dir(157.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr 다섯째\cr 4\cr}} etex, dir(202.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr 여섯째\cr 8\cr}} etex, dir(247.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr 일곱째\cr 7\cr}} etex, dir(292.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr 여덟째\cr 3\cr}} etex, dir(337.5)*.74u);
 label.rt(btex $x$ etex, (1.15u,0)); label.top(btex $y$ etex, (0,1.15u));
 endfig;
 \endmplibcode$$
