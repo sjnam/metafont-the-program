@@ -230,6 +230,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -760,6 +761,14 @@ func wOpenOut(f *wordFile) bool { // 낱말 파일을 출력용으로 연다
 \.{cmr10.mf} 같은 표준 파일들을 찾을 수 있다. 기반 파일은 구현마다 형식이 달라서 다른 \MF의
 것을 읽을 수 없으므로 \.{kpsewhich}에 묻지 않는다. 찾지 못하면 머리말을 뗀 이름을
 돌려주므로, 그런 파일이 현재 디렉터리에 있으면 그것이 열린다.
+
+\.{kpsewhich}는 부를 때마다 배포판의 파일 목록을 처음부터 읽으므로 한 번에 0.1초쯤 걸린다.
+그런데 \.{cmr10.mf} 하나가 \.{roman.mf}, \.{punct.mf}, \.{comlig.mf} 같은 파일을 열몇 개
+읽으므로, 파일마다 물으면 계산은 0.05초면 끝나는 글꼴 하나에 1.4초가 걸린다. 그래서
+\TeX을 옮길 때 글꼴 파일에 한 것처럼, \.{kpsewhich}에게는 입력 디렉터리의 목록만 한 번 받아서
+처음 입력 파일을 찾을 때 그 디렉터리들을 훑어 이름에서 경로로 가는 표 |mfFiles|를 만든다.
+목록의 순서대로 훑고 먼저 나온 것을 남기므로, 맨 앞의 현재 디렉터리가 이긴다. 표에 없는 파일만
+\.{kpsewhich}에게 따로 묻는다. 그러면 \.{cmr10}을 만드는 데 0.2초가 채 들지 않는다.
 @^system dependencies@>
 
 @<함수들@>=
@@ -777,6 +786,10 @@ func externalName() string {
 				}
 			}
 			if a.env == "MFINPUTS" {
+				@<입력 디렉터리들을 훑어 표 |mfFiles|를 아직 안 만들었으면 만든다@>
+				if p, ok := mfFiles[nm]; ok {
+					return p
+				}
 				if out, err := exec.Command("kpsewhich", nm).Output(); err == nil {
 					if p := strings.TrimSpace(string(out)); p != "" {
 						return p
@@ -788,6 +801,42 @@ func externalName() string {
 	}
 	return nm
 }
+
+@ 입력 디렉터리의 목록은 \.{kpsewhich -show-path=mf}가 쌍점으로 나누어 알려 준다. 끝이 `\.{//}'인
+디렉터리는 그 아래를 모두 뒤지라는 뜻이고, 앞의 `\.{!!}'는 파일 목록 데이터베이스만 믿으라는
+뜻인데, 여기서는 디스크를 직접 훑으므로 그냥 떼어 낸다. 배포판이 없어 목록이 비어도 표는 빈 채로
+만들어지므로, 다시 훑으려 하지 않는다.
+
+@<입력 디렉터리들을 훑어...@>=
+if mfFiles == nil {
+	mfFiles = map[string]string{}
+	out, _ := exec.Command("kpsewhich", "-show-path=mf").Output()
+	for _, dir := range filepath.SplitList(strings.TrimSpace(string(out))) {
+		dir = strings.TrimPrefix(dir, "!!")
+		deep := strings.HasSuffix(dir, "//")
+		root := strings.TrimRight(dir, "/")
+		if root == "" {
+			continue
+		}
+		filepath.WalkDir(root, func(p string, e fs.DirEntry, err error) error {
+			switch {
+			case err != nil:
+			case e.IsDir():
+				if p != root && !deep {
+					return filepath.SkipDir
+				}
+			default:
+				if _, dup := mfFiles[e.Name()]; !dup {
+					mfFiles[e.Name()] = p
+				}
+			}
+			return nil
+		})
+	}
+}
+
+@ @<전역 변수@>=
+var @!mfFiles map[string]string // 입력 파일 이름에서 경로로 가는 표
 
 @ 파일은 루틴 |aClose|, |bClose|, |wClose|로 닫는다. 이 루틴들은 파일 |f|에 대한 입력이나 출력이 모두
 @^system dependencies@>
@@ -29070,7 +29119,7 @@ case 15:
 엔디언으로 쓴다(48부).
 
 \smallskip\item{$\bullet$} 입력 파일은 먼저 현재 디렉터리에서, 다음에 환경 변수 \.{MFINPUTS}가 가리키는 곳에서, 마지막으로
-\.{kpsewhich}로 찾는다. 기반 파일은 \.{MFBASES}에서 찾는다(38부).
+\.{kpsewhich}가 알려 주는 입력 디렉터리들을 한 번 훑어 만든 표에서 찾는다(\secref{external-name}). 기반 파일은 \.{MFBASES}에서 찾는다(38부).
 
 \smallskip\item{$\bullet$} 명령줄의 첫 인자가 `\.{-ini}'이면 \.{INIMF}로 돈다(\secref{main}). 나머지 인자들은 입력의 첫
 줄이 된다.
