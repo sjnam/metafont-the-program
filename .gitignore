@@ -32,3 +32,6 @@ orig/CONTENTS.tex
 
 # 편집기 임시 파일
 *.swp
+
+# TUGboat 기고 초고: 기고를 확정할 때까지 로컬에만 둔다
+tugboat/
