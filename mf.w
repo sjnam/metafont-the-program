@@ -1366,8 +1366,7 @@ appLcHex := func(x int32) {
 	}
 }
 for k = 0; k <= 255; k++ {
-	unprintable := @<문자 |k|를 찍을 수 없다@>
-	if unprintable {
+	if @<문자 |k|를 찍을 수 없다@> {
 		appendChar('^')
 		appendChar('^')
 		if k < 0o100 {
@@ -19035,8 +19034,7 @@ func resumeIteration() {
 	p = loopType(loopPtr)
 	if p > void { // |p|는 수열 노드를 가리킨다
 		curExp = value(p)
-		ended := @<등차수열이 끝났다@>
-		if ended {
+		if @<등차수열이 끝났다@> {
 			goto notFound
 		}
 		curType = known
