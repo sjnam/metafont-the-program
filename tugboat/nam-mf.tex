@@ -88,32 +88,41 @@ and suggested that I write a tool for literate programming in Go. The
 name \GWEB\ first appears in that reply, which I received on June~18,
 2026. The first commit of \GWEB\ was made the next day.
 
-{\narrower\smallskip\noindent
+{\narrower\smallskip\noindent\it
 About porting SGB and ADVENTURE to Go: I'm very glad that you have
 enjoyed these algorithms. But I'm disappointed that you seem to have
 eliminated the ``literate'' aspect! Is there not a tool for literate
-programming in Go? If not, why not write GWEB? \dots\par
+programming in Go? If not, why not write GWEB?\/ \dots\par
 \rightline{Best wishes, Don}\smallskip}
 
 The \GWEB\ that came of it~[6] is now introduced on Knuth's literate
 programming page~[5] in one line: ``Soojin Nam's \GWEB, an analog of
 \CWEB\ for Go instead of C''.
 
+After \GWEB\ was born, I also rewrote in \GWEB\ my ports of
+{\tt advent.w} and the SGB, which had been plain Go programs~[11, 12].
+I hope this eases Knuth's disappointment a little. My only regret is
+that they are all written in Korean, so I cannot share them with people
+who do not read Korean.
+
 \subhead * Design *
 As the name says, \GWEB\ follows \CWEB. {\tt gtangle} extracts the Go
 code and {\tt gweave} makes a \TeX\ document. Change files, {\tt @i}
 includes, the index and the list of section names, even the page
-layout follow \CWEB. Three things differ because of Go.
+layout follow \CWEB. With \CWEB\ at hand as an oracle that gives the
+right answers, \GWEB\ was much easier and quicker to build than I had
+expected. Three things differ because of Go.
 
 \list\raggedright
 \item {\tt gtangle} formats the assembled program with {\tt gofmt},
 and it always adds {\tt //line} directives. Like the {\tt \#line} of
 \CWEB, they make the compiler's error messages and panic traces point
 to lines of the {\tt .w} file instead of the {\tt .go} file.
-\item {\tt gweave} does not rebuild the layout of the code from a
-grammar as \CWEB\ does; it follows the spacing of the source. Go
-formatted by {\tt gofmt} already carries its grammar in its spacing
-(|*T| versus |a * b|, |a*b + c|, and so on).
+\item {\tt gweave} is much simpler than {\tt cweave}. {\tt cweave}
+implements the whole grammar of C to rebuild the layout of the code,
+but {\tt gweave} only has to follow the spacing of the source. Go has
+{\tt gofmt}, and Go formatted by {\tt gofmt} already carries its
+grammar in its spacing (|*T| versus |a * b|, |a*b + c|, and so on).
 \item A Korean document needs only one line, \cs{input kotexgweb}, in
 its limbo. It is typeset with \LuaTeX\ and ko.\TeX\ (luatexko), and
 the words that {\tt gweave} generates, such as ``Names of the
@@ -121,8 +130,11 @@ sections'', become Korean too.
 \endlist
 
 \GWEB\ is written in \GWEB\ itself, and rebuilding it gives a
-byte-identical result. Besides Knuth's two programs, I have written
-about thirty literate Go programs in Korean with it~[7].
+byte-identical result. Besides \TeX\ and \MF, I have written
+about thirty literate Go programs in Korean with it~[7]. All of them
+were tests to make \GWEB\ sturdier. A newborn program needs much
+testing, both before it goes out into the world and after. But who
+will test it? The author has to do it.
 
 \subhead * What {\tt mf.web} taught \GWEB\ *
 Knuth's \WEB\ sometimes puts a section name in the middle of an
@@ -507,20 +519,6 @@ the original {\tt mf.web} belongs to Knuth. Following the conditions of
 the original, this translation does not use the name {\tt mf.web} and
 is not part of Knuth's \MF\ package.
 
-\newpage\onecol
-\dimen0=\vsize \advance\dimen0 by -8\baselineskip
-\centerline{\saveimageresource height\dimen0 {fig-a-p767-crop.pdf}%
-  \useimageresource\lastsavedimageresourceindex}
-\figcaption{Figure A.}{Page 767 of the translation (translation
-\S\S1290--1291, original \S\S1166--1167). The upper section is the
-prose that explains the theoretical overflow of \id{xoffset}
-(section~6) and the Go code that sends the offsets to the \acro{GF}
-file; the lower section is the \acro{GF} encoding figure introduced in
-section~7 and the Go code that outputs that character. In the code,
-$\langle\dots\rangle$ is a named section, and the number after it is
-the number of that section.}
-\newpage\twocol
-
 \head * Acknowledgments *
 
 This project was possible thanks to the Korean \TeX\ Users Group
@@ -561,7 +559,24 @@ feelings with a quiet ``thank you''.
 \bib9 Soojin Nam. tex-the-program.
   \url{github.com\s sjnam\s tex-the-program}
 \bib{10} Dohyun Kim. \url{github.com\s dohyunkim}
+\bib{11} Soojin Nam. go-advent. \url{github.com\s sjnam\s go-advent}
+\bib{12} Soojin Nam. go-sgb. \url{github.com\s sjnam\s go-sgb}
 \par}
 
 \makesignature
+
+% Figure A takes a whole page; it is placed here at the end, and the
+% editors may move it.
+\newpage\onecol
+\dimen0=\vsize \advance\dimen0 by -8\baselineskip
+\centerline{\saveimageresource height\dimen0 {fig-a-p767-crop.pdf}%
+  \useimageresource\lastsavedimageresourceindex}
+\figcaption{Figure A.}{Page 767 of the translation (translation
+\S\S1290--1291, original \S\S1166--1167). The upper section is the
+prose that explains the theoretical overflow of \id{xoffset}
+(section~6) and the Go code that sends the offsets to the \acro{GF}
+file; the lower section is the \acro{GF} encoding figure introduced in
+section~7 and the Go code that outputs that character. In the code,
+$\langle\dots\rangle$ is a named section, and the number after it is
+the number of that section.}
 \endarticle
