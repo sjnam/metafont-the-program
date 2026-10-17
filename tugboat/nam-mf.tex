@@ -7,8 +7,10 @@
 \StretchyTenPointSpacing
 \StretchyNinePointSpacing
 
-\font\kofont={file:UnBatang.ttf} at 9.5pt
-\def\ko#1{{\kofont #1}}
+% Hangul follows the size of the current font: its height (about 0.88em
+% of UnBatang above the baseline) is matched to the capitals of cmr.
+\def\ko#1{{\dimen0=2.04\fontdimen5\font
+  \font\kofont={file:UnBatang.ttf} at \dimen0 \kofont #1}}
 \def\GWEB{{\tt GWEB}\spacefactor1000 }
 \def\CWEB{{\tt CWEB}\spacefactor1000 }
 \def\LuaTeX{Lua\TeX}
@@ -212,7 +214,7 @@ were about 330, and I fixed them all.
 
 \subhead * Terms *
 Most \MF\ terms have no established Korean translation. Where I could,
-I chose plain native Korean words (table~1).
+I chose plain native Korean words (Table~1).
 
 \medskip
 \centerline{\ninepoint{\bf Table 1.}\enspace Some translated terms.}
@@ -297,10 +299,10 @@ became slower.
 
 \subhead * Integer division *
 Knuth recommends that |half| be changed to a shift for speed. But Go's
-|/| truncates toward zero, while |x>>1| rounds toward $-\infty$
-(|-3/2| is $-1$; |-3>>1| is $-2$). The log of the \acro{TRAP} test was
+$/$ truncates toward zero, while $x>\!\!>1$ rounds toward $-\infty$
+($-3/2$ is $-1$; $-3>\!\!>1$ is $-2$). The log of the \acro{TRAP} test was
 made with the former arithmetic, so I kept the division. The Go
-compiler turns |x/2| into a few shifts anyway, so nothing is lost.
+compiler turns $x/2$ into a few shifts anyway, so nothing is lost.
 
 \subhead * Functions and sections *
 Procedures that the original declared in advance with |forward| are
@@ -346,7 +348,7 @@ directly, except for the date comment in the \acro{GF} preamble.
 
 \head * 6\quad What careful reading found *
 
-\subhead * The {\tt link(p)} of \S587 *
+\subhead * The {\tt link(p)} of {\rm\S587} *
 The paragraph that describes dependency lists reads:
 
 {\narrower\smallskip\noindent
