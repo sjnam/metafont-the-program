@@ -1,0 +1,567 @@
+% nam-mf.tex -- TUGboat article (plain TeX, tugboat.sty).
+% Typeset with:  luatex nam-mf.tex
+% Lua\TeX\ is needed only for the few Korean words; the Korean font
+% is UnBatang from TeX Live (unfonts-core), loaded by file name.
+\input tugboat.sty
+\input luaotfload.sty
+\StretchyTenPointSpacing
+\StretchyNinePointSpacing
+
+\font\kofont={file:UnBatang.ttf} at 9.5pt
+\def\ko#1{{\kofont #1}}
+\def\GWEB{{\tt GWEB}\spacefactor1000 }
+\def\CWEB{{\tt CWEB}\spacefactor1000 }
+\def\LuaTeX{Lua\TeX}
+\def\MFTP{{\sl \slMF: The Program\/}}
+\def\id#1{\hbox{\it #1\/}}
+\def\sect#1{$\langle\,$#1$\,\rangle$}
+\def\url#1{{\tt #1}}
+\def\image#1#2{\saveimageresource width #1 {#2}%
+  \useimageresource\lastsavedimageresourceindex}
+\def\figcaption#1#2{\smallskip
+  {\ninepoint\noindent{\bf #1}\enspace #2\par}}
+
+\title * \MFTP\ rewritten with Korean \GWEB\ *
+\author * Soojin Nam *
+\address * South Korea *
+\netaddress * jsunam@gmail.com\\ https://sjnam.github.io *
+
+\article
+
+\subhead * Abstract *
+I rewrote Knuth's \MFTP\ ({\tt mf.web}, version 2.71828182) in full
+as a literate program. The prose is in Korean, the code is in Go, and
+the tool is \GWEB, which I wrote. The result passes the \acro{TRAP}
+test and produces eleven Computer Modern fonts identical, byte for byte,
+to those made by the \MF\ of \TeX\ Live. I did this work together with
+Claude, an \acro{AI} model from Anthropic. This article tells how
+\GWEB\ came about and how this work improved it, the problems of
+translating into a human language and into a programming language, and
+a small error in the original that I found along the way.
+
+\head * 1\quad Introduction *
+
+I am a retired programmer who has used \TeX\ for more than thirty
+years. Since retiring I have had plenty of time, and that time, along
+with being a fan of Knuth, made this work possible. I had two reasons
+for starting it.
+
+First, I wanted to learn from a large program written by a master: how
+to build a program, and how to turn algorithms into concrete code.
+\MF\ seemed to have even more interesting algorithms than \TeX. To
+read such a masterpiece again and again and understand it more deeply,
+translating it into Korean,
+my native language, was the natural thing for me to do. One cannot
+translate a sentence without understanding it, so translation is also
+the most thorough kind of reading.
+
+Second, I wanted to see whether my \GWEB\ works well on a program as
+large and complex as {\tt mf.web}, and to improve \GWEB\ in the
+process. To test a tool, a large, well-structured program is better
+than a toy program, so choosing Knuth's programs was natural. There is
+no better test than real use.
+
+Before this, I translated \TP\ in the same way
+(tex-the-program~[9]); this work (metafont-the-program~[8]) applies
+that experience to \MF. As far as I know, {\tt tex.web} has been
+translated into many programming languages, but translations of
+{\tt mf.web} are rare, and neither has been translated into another
+human language. In that sense this translation is unusual in two ways.
+
+The result, {\tt mf.w}, has 29,153 lines, and the Go code that
+{\tt gtangle} extracts from it has 23,830 lines. It follows the 52
+parts of the original and is 856 pages when typeset. The original has
+1,215 sections and the translation 1,353 (section~4 explains why). In
+this article a \S\ number is that of the original unless stated
+otherwise; when I need a section number of the translation, I write it
+as ``translation \S161''.
+
+\head * 2\quad \GWEB\ *
+
+\subhead * Beginnings *
+Some time ago I ported Knuth's {\tt advent.w}~[3] and
+{\sl The Stanford GraphBase\/}~[4] to Go. I ported them as ordinary Go
+programs, not as literate programs. When I sent Knuth an error I had
+found in his work, at his address for bug reports, I also told him
+about these ports. He regretted that they were not literate programs
+and suggested that I write a tool for literate programming in Go. The
+name \GWEB\ first appears in that reply, which I received on June~18,
+2026. The first commit of \GWEB\ was made the next day.
+
+{\narrower\smallskip\noindent
+About porting SGB and ADVENTURE to Go: I'm very glad that you have
+enjoyed these algorithms. But I'm disappointed that you seem to have
+eliminated the ``literate'' aspect! Is there not a tool for literate
+programming in Go? If not, why not write GWEB? \dots\par
+\rightline{Best wishes, Don}\smallskip}
+
+The \GWEB\ that came of it~[6] is now introduced on Knuth's literate
+programming page~[5] in one line: ``Soojin Nam's \GWEB, an analog of
+\CWEB\ for Go instead of C''.
+
+\subhead * Design *
+As the name says, \GWEB\ follows \CWEB. {\tt gtangle} extracts the Go
+code and {\tt gweave} makes a \TeX\ document. Change files, {\tt @i}
+includes, the index and the list of section names, even the page
+layout follow \CWEB. Three things differ because of Go.
+
+\list\raggedright
+\item {\tt gtangle} formats the assembled program with {\tt gofmt},
+and it always adds {\tt //line} directives. Like the {\tt \#line} of
+\CWEB, they make the compiler's error messages and panic traces point
+to lines of the {\tt .w} file instead of the {\tt .go} file.
+\item {\tt gweave} does not rebuild the layout of the code from a
+grammar as \CWEB\ does; it follows the spacing of the source. Go
+formatted by {\tt gofmt} already carries its grammar in its spacing
+(|*T| versus |a * b|, |a*b + c|, and so on).
+\item A Korean document needs only one line, \cs{input kotexgweb}, in
+its limbo. It is typeset with \LuaTeX\ and ko.\TeX\ (luatexko), and
+the words that {\tt gweave} generates, such as ``Names of the
+sections'', become Korean too.
+\endlist
+
+\GWEB\ is written in \GWEB\ itself, and rebuilding it gives a
+byte-identical result. Besides Knuth's two programs, I have written
+about thirty literate Go programs in Korean with it~[7].
+
+\subhead * What {\tt mf.web} taught \GWEB\ *
+Knuth's \WEB\ sometimes puts a section name in the middle of an
+expression, as in {\tt if @<Character \char`\|k\char`\|\ cannot be
+printed@> then}. In
+C this causes no trouble, but in \GWEB\ such code did not compile.
+{\tt gtangle} put newlines before and after an expanded section, and
+Go automatically inserts a semicolon at a newline after an identifier,
+a literal, or a closing bracket, ending the statement. The opening
+brace after the expanded condition became a syntax error. So in both
+translations I avoided the problem by storing the condition in a
+boolean variable first and using that in the |if|: four places in the
+\TeX\ translation, two in the \MF\ translation.
+
+This time I removed the workaround. Now {\tt gtangle} expands a section
+reference that has other code on the same line in place, without
+newlines. The position information is attached in the form
+|/*line file:line*/|, which Go accepts even in the middle of a line.
+Then error messages point, inside the expanded text, to the line where
+the section is defined, and after it to the original line:
+
+\verbatim
+if /*line mf.w:1406*/ k < ' ' ||
+   k > '~' /*line mf.w:1369*/ {
+\endverbatim
+
+\noindent (In {\tt gtangle}'s output this is one line.) I released this
+change as \GWEB\ 0.10.4 and then restored all six places to the
+original form. The tests of both translations still passed. In the same
+release the type style of constants was changed to follow the rule of
+{\tt cweave}: a name with no lowercase letters is set in typewriter
+type. I had expected that translating a large program would expose gaps
+in the tool, and that is exactly what happened.
+
+\head * 3\quad Translating into Korean *
+
+\subhead * What was translated and what was not *
+I translated the prose, the section names, and the comments into
+Korean. The identifiers, the index entries, and the error and help
+messages that \MF\ prints remain in English. If the messages were
+translated, the output could not be compared byte by byte with the
+\acro{TRAP} test and with \TeX\ Live. I kept the index in English so
+that it is easy to use side by side with the book.
+
+\subhead * Section names *
+Knuth's section names are usually English imperatives or short
+statements. In Korean the verb comes at the end of the sentence, so I
+translated section names into statements that end with the verb. For
+example, \sect{Character $k$ cannot be printed} becomes
+\sect{\ko{문자} $k$\ko{를 찍을 수 없다}}. Within the code, a section
+name reads as a short Korean sentence of one line.
+
+\subhead * Identifiers and particles *
+A Korean particle changes its form depending on the sound that ends
+the preceding word: $k$\ko{를}, \id{mMagic}\ko{과},
+\id{futurePen}\ko{은}. (The letter $k$ is read ``kay'', ending in a
+vowel, so it takes \ko{를}; \id{futurePen} ends in a consonant, so it
+takes \ko{은}.) So to attach a particle to an English identifier, one
+must decide how the identifier is pronounced. Also, a Korean sentence
+that begins with an identifier or a formula reads very awkwardly. So
+instead of ``\id{fraction}\ko{은} \dots'' I wrote ``\ko{형}
+\id{fraction}\ko{은} \dots'' (``the type \id{fraction} \dots''),
+putting in front a Korean noun that names it. After finishing the
+translation I searched again for sentences that broke this rule. There
+were about 330, and I fixed them all.
+
+\subhead * Terms *
+Most \MF\ terms have no established Korean translation. Where I could,
+I chose plain native Korean words (table~1).
+
+\medskip
+\centerline{\ninepoint{\bf Table 1.}\enspace Some translated terms.}
+\smallskip
+\centerline{\ninepoint\vbox{\halign{#\hfil\tabskip=1.5em
+  &\ko{#}\hfil\tabskip=0pt\cr
+scaled (integer)&눈금 정수\cr
+word&낱말\cr
+halfword, quarterword&하프워드, 쿼터워드\cr
+base file, transcript file&기반 파일, 기록 파일\cr
+octant&팔분면\cr
+edge structure&가장자리 구조\cr
+mock curvature&모조 곡률\cr
+dependency list&종속 목록\cr
+granularity&낱알 크기\cr
+pseudoprinting&흉내 찍기\cr
+Stern--Brocot wreath&스턴–브로코 화환\cr}}}
+\medskip
+
+\subhead * Knuth's voice *
+Knuth's writing has much humor. I translated ``That which can be
+created can be destroyed'' (\S487) as ``\ko{만들어질 수 있는 것은
+부서질 수 있다}'', and ``The former chastity has vanished!''
+(\S1203) as ``\ko{이전의 순결은 사라졌다!}''. If I translate only the
+meaning, the joke is lost; if I keep the flavor of the words, the
+meaning blurs. There were many places where I struggled between the two.
+
+\head * 4\quad Translating into Go *
+
+The goal was to remove the smell of Pascal and write in the Go way,
+without changing Knuth's arithmetic or data structures, because the
+output had to be the same down to the byte. Table~2 shows the main
+correspondences.
+
+\medskip
+\centerline{\ninepoint{\bf Table 2.}\enspace Pascal in the original,
+Go in the translation.}
+\smallskip
+{\ninepoint\raggedright
+\dimen0=.47\hsize
+\halign to\hsize{\vtop{\hsize=\dimen0 \noindent#\strut}\tabskip=0pt plus1fil
+  &\vtop{\hsize=\dimen0 \noindent#\strut}\tabskip=0pt\cr
+|goto end_of_MF| from another procedure&
+  |panic| with the label as value; |recover| in the main program\cr
+\noalign{\smallskip}
+variant record |memory_word|&a struct with separate fields
+  (36~bytes)\cr
+\noalign{\smallskip}
+|@d half(#)==(#) div 2|&|func half(x int32) int32|
+  |{ return x / 2 }|\cr
+\noalign{\smallskip}
+string constants preloaded in the string pool&the list
+  |poolLiterals|; a checksum in the base file\cr
+\noalign{\smallskip}
+|forward| declarations&not needed; all functions are collected in one
+  section, \sect{\ko{함수들}} (Functions)\cr
+\noalign{\smallskip}
+local labels |done|, |found|&mostly |break|, |continue|, labeled
+  loops\cr
+\noalign{\smallskip}
+|stat| \dots\ |tats|, |debug| \dots\ |gubed|&|if stat {...}|,
+  |if debug {...}| (constant conditions)\cr}}
+\medskip
+
+\noindent A few need explanation.
+
+\subhead * A {\tt goto} out of a function *
+When a fatal error occurs, \MF\ jumps from |jump_out| straight to a
+label in the main program. Go's |goto| cannot leave a function, so the
+translation raises a |panic| with the label as its value, and a
+function that the main program has deferred catches it with |recover|.
+
+\subhead * The memory word *
+The original |memory_word| is a variant record that overlays one
+integer, two halfwords, or four quarterwords in one word. Go has no
+such record. \MF\ never reads a value through a different variant from
+the one it was written with, so instead of using |unsafe| I chose a
+struct with separate fields. The price is size. One word became
+36~bytes, so the base file is about four times as large as that of
+\TeX\ Live (299\thinspace KB versus 78\thinspace KB), and computation
+became slower.
+
+\subhead * Integer division *
+Knuth recommends that |half| be changed to a shift for speed. But Go's
+|/| truncates toward zero, while |x>>1| rounds toward $-\infty$
+(|-3/2| is $-1$; |-3>>1| is $-2$). The log of the \acro{TRAP} test was
+made with the former arithmetic, so I kept the division. The Go
+compiler turns |x/2| into a few shifts anyway, so nothing is lost.
+
+\subhead * Functions and sections *
+Procedures that the original declared in advance with |forward| are
+defined in place, and all functions are appended to one section,
+\sect{\ko{함수들}}. Most local labels of the original became |break|,
+|continue|, or |if|--|else|, and at each such place the prose notes
+what the original did. The number of sections grew because of
+typesetting. {\tt gwebmac} breaks pages mainly at section boundaries,
+so a section longer than a page causes an Underfull warning. So I split
+long sections into named sections. The typesetting produces no
+warnings.
+
+\subhead * Performance *
+Making cmr10 at 600\thinspace dpi took 0.18 seconds with the
+translation and 0.13 seconds with {\tt mf-nowin} of \TeX\ Live (Apple
+M1 Max). Pure computation is a little more than twice as slow in the
+translation (probably because of the 36-byte word and array bounds
+checks), but the translation starts in 0.01 seconds, while
+{\tt mf-nowin} spends about 0.1 seconds initializing kpathsea. The
+first version took 1.4 seconds, because it ran {\tt kpsewhich}
+separately each time it looked for an input file. When I made it scan
+the input directories only once and build a table, the time became
+0.18 seconds.
+
+\head * 5\quad Verification *
+
+\subhead * The \acro{TRAP} test *
+The {\tt trap.72270gf} made by the translation is identical to the
+original's byte for byte, and {\tt trap.pl} and {\tt trap.typ} have no
+differing lines. The only differences in the log files are the banner
+and the string pool statistics, both of which the \acro{TRAP} manual
+allows.
+
+\subhead * Comparison with \TeX\ Live *
+I made eleven Computer Modern fonts (cmr10, cmbx12, cmti10, cmmi10,
+cmsy10, cmex10, cmtt10, cmss10, cmcsc10, cmfib8, logo10) at
+200\thinspace dpi and 600\thinspace dpi and compared them with the
+output of {\tt mf-nowin}. In all 22 cases the \TFM, \acro{GF}, and log
+files were the same. The original |fix_date_and_time| sets the date to
+noon on July~4, 1776, if it cannot get the system date; the translation
+deliberately always uses that date. Then the outputs can be compared
+directly, except for the date comment in the \acro{GF} preamble.
+
+\head * 6\quad What careful reading found *
+
+\subhead * The {\tt link(p)} of \S587 *
+The paragraph that describes dependency lists reads:
+
+{\narrower\smallskip\noindent
+If $q=\id{dep\_list}(p)$ points to this list, and if $k>0$, then
+$\id{value}(q)=\alpha_1$ (which is a \id{fraction}); $\id{info}(q)$
+points to the location of $v_1$; and $\id{link}(p)$ points to the
+dependency list $\alpha_2v_2+\cdots+\alpha_kv_k+\beta$.
+\smallskip\par}
+
+The final $\id{link}(p)$ should be $\id{link}(q)$. The sentence lists
+three fields of the first node, which it has just named~$q$, and the
+first two are $\id{value}(q)$ and $\id{info}(q)$. The variable $p$ is
+the dependent variable itself, and its \id{link} is used to connect the
+variable structure (\S228ff.). The code that traverses the list
+(\id{print\_dependency} in \S589 and others) also goes to the next term
+through the \id{link} of a list node, and there the list node is called
+$p$. Perhaps that name slipped into the paragraph. The error was still
+in the 2021 version and was not in Knuth's errata. When I reported it
+to tex-k, Karl Berry confirmed it and added it to the list to be sent
+to Knuth.
+
+\subhead * Theoretical 32-bit overflows *
+The translation runs in a language that does not catch integer
+overflow, so I examined, one by one, the places where overflow could
+occur. Knuth checked almost every place in advance, but in three places
+overflow can occur when a number of 32768 or more is to be represented
+as a scaled integer (an integer times $2^{16}$).
+
+\list[\numbered]\raggedright
+\item {\bf The lower threshold of |cull| (\S1074).} The original rounds
+the lower end up as |floor_unscaled(cur_x+unity-1)|. If a computed $a$
+is 32767.5 or more, this addition overflows, the lower end becomes
+$-32768$, pixels of weight~0 are kept too, and the picture is ruined.
+In a version translated literally from the original, a picture culled
+with $a=32767.5$ and $b=32767.9$ had a |totalweight| of $-0.1875$
+instead of~0. The translation computes the ceiling as
+$\lceil x\rceil=-\lfloor -x\rfloor$ instead. For values that do not
+overflow the two formulas agree, so the result of the \acro{TRAP} test
+does not change.
+\item {\bf The window number of |display| (\S1071).} Converting an
+out-of-range window number back with |cur_exp*unity| to show it in an
+error message can overflow. Only the number in the message is wrong.
+\item {\bf {\tt xoffset} and {\tt yoffset} (\S1165).} If an offset is
+32767.5 or more, a wrong value goes into the |yyy| command of the
+\acro{GF} file. The shapes of the characters are unaffected (the upper
+part of figure~A).
+\endlist
+
+None of these shows up in real font work. The weight of a single edge
+is at most $\pm3$, so for a pixel to reach weight 32768 one would have
+to overlay more than ten thousand fills; an offset of 32768 pixels is
+more than 1.4\thinspace m even at 600\thinspace dpi. Moreover, a
+constant greater than 4096 is already cut off when it is scanned, so
+such values arise only when computed on purpose. So I call these
+``theoretical overflows'' rather than ``bugs'', and I did not report
+them separately to tex-k. The people who look after the reports to
+Knuth will also read this article, so I think writing them down here is
+enough. The translation fixes the first and adds explanations for the
+other two.
+
+\head * 7\quad Figures *
+
+Knuth put almost no figures in \MFTP. Instead he explains things very
+precisely in words, and sometimes suggests that the reader draw a
+picture with a pencil. In the translation I took up that suggestion and
+drew 26 figures. They are drawn during typesetting with luamplib: the
+\MP\ code sits in the {\tt .w} file itself, and since the
+|btex| \dots\ |etex| labels are typeset by the document's own \TeX,
+Korean labels automatically match the text font. Here are a few.
+
+\list\raggedright
+\item {\bf Octants and Gray code (\S139, translation \S161).} Writing
+the original's codes in the eight octants shows that neighboring
+octants differ in only one bit (figure~C).
+\item {\bf The data structure of variables (\S229, translation
+\S286).} Knuth explains the structure for |x|, |x.a|, |x[]b|, |x5|,
+and |x20b| in words and says that the reader should draw a picture with
+a pencil. The translation adds a section right after it and draws that
+picture (figure~B).
+\item {\bf Hobby's velocity function (\S116), de Casteljau subdivision
+(\S303), Hobby's equivalence classes (\S525).} The approximation of
+curves, the subdivision of Bernstein polynomials, and the number theory
+behind elliptical pens, drawn following the examples of the original.
+\item {\bf \acro{GF} encoding (\S1167, translation \S1291).} For a
+character shaped like a |T|, five pixels wide, the figure shows row by
+row which commands encode it (the lower part of figure~A).
+\endlist
+
+\figure
+\centerline{\image{\hsize}{fig-b-variables.pdf}}
+\figcaption{Figure B.}{The example of \S229 drawn (translation \S286):
+the structure of variables after the user has mentioned |x|, |x.a|,
+|x[]b|, |x5|, and |x20b| and declared |x[]b| to be {\bf boolean}.
+Solid arrows are \id{link}, bold arrows \id{attr\_head}, and dashed
+arrows \id{subscr\_head}; \id{parent} pointers are not drawn. The row
+that starts at node $q_1$ of the collective subscript |x[]| has the
+same shape as the row that starts at node $r_1$ of the actual subscript
+|x20|. The structure under a collective subscript serves as the model
+for the structure under an actual subscript.}
+\endfigure
+
+\figure
+\centerline{\image{.75\hsize}{fig-c-octants-en.pdf}}
+\figcaption{Figure C.}{Octant names and the Gray code (\S139, translation
+\S161). The top of each cell gives the name of the octant; the bottom
+gives the code defined in the original (\id{first\_octant}${}=1$,
+\id{second\_octant}${}=5$, \dots). The three bits of the code minus~1
+mean \id{negate\_x}, \id{negate\_y}, and \id{switch\_x\_and\_y}. Here
+the names are in English, but in the figure of the translation they
+are written in Korean, from \ko{첫째} (first) to \ko{여덟째} (eighth).}
+\endfigure
+
+\head * 8\quad Working with Claude *
+
+This translation is not my work alone. Because my English is poor, I
+did a large part of the translation and testing together with Claude,
+an \acro{AI} model from Anthropic, used as a coding assistant (Claude
+Code). Here is who did what.
+
+\subhead * What I did *
+I wrote \GWEB, on which this work is based, and I set the direction
+and the standards. I wrote down in advance the rules for the structure
+of the literate program (unnamed code only in the skeleton of the first
+section; all functions collected in one section, \sect{\ko{함수들}}),
+rules for Korean sentences, and the standard for typesetting quality
+(zero warnings). Then I read the results and pointed out what to fix:
+that the index section of the original was missing, that letters in
+figures overlapped lines, and so on. It was also I who remembered the
+workaround in \GWEB\ and proposed fixing it in \GWEB.
+
+\subhead * What Claude did *
+Claude read the original and wrote the Korean prose and the Go code,
+drew the \MP\ figures, and wrote and ran test scripts. Claude was also
+the first to notice the error in \S587. When I asked whether it was
+sure this was a typo, it cited the definitions in the paragraph and the
+code as evidence, and searched Knuth's errata and \acro{TUG}'s list to
+confirm that it had not yet been reported.
+
+\subhead * Working together *
+Above all, the work took far less time than I had expected: less than
+a week. Alone it would have taken me well over a year, and that only
+if I had kept at it steadily and persistently. Moreover, the careful
+and thorough testing done in that short time is something I could
+never have imagined doing alone.
+
+Working with Claude was one surprise after another. Sometimes it makes
+mistakes that even a child would not make. It sometimes uses commands
+or macros that do not exist in \GWEB\ as if they did, but such
+mistakes can be forgiven as charming. I am most grateful when it
+explains code I do not understand, in more detail than a book could
+ever hold. It knows what I do not know better than I do, and I can only
+wonder how that is possible. It writes example code, and sometimes
+draws pictures to help me understand. When it brings up a reference I
+would never have thought of for a piece of code, connecting things
+that seemed unrelated, I cannot help being amazed.
+
+\subhead * What made it trustworthy *
+Some mistakes could not be taken lightly. At first it left out the
+index section, and when measuring performance it almost reported times
+measured while \TeX\ Live could not find the test file. What caught
+such errors were three checks: Knuth's \acro{TRAP} test, the
+byte-by-byte comparison with \TeX\ Live, and my own reading of the
+typeset result. In a literate program the document and the code are
+one, so a person checks understanding by reading the document, and
+tests check the code. I never imagined that I would benefit from
+Knuth's \acro{TRAP} in this way forty years later.
+
+\head * 9\quad Conclusion *
+
+Rereading a frozen program without skipping a single section taught me
+why it has lasted more than forty years. The error I found this time
+was a single letter in the prose. And \GWEB, which began with Knuth's
+suggestion, came a step closer to \CWEB\ while translating Knuth's
+program. The \MF\ translation was written as a literate program from
+the start, so it is a late reply to that suggestion.
+
+The translations and \GWEB\ are on GitHub~[6, 8, 9]. The copyright of
+the original {\tt mf.web} belongs to Knuth. Following the conditions of
+the original, this translation does not use the name {\tt mf.web} and
+is not part of Knuth's \MF\ package.
+
+\newpage\onecol
+\dimen0=\vsize \advance\dimen0 by -8\baselineskip
+\centerline{\saveimageresource height\dimen0 {fig-a-p767-crop.pdf}%
+  \useimageresource\lastsavedimageresourceindex}
+\figcaption{Figure A.}{Page 767 of the translation (translation
+\S\S1290--1291, original \S\S1166--1167). The upper section is the
+prose that explains the theoretical overflow of \id{xoffset}
+(section~6) and the Go code that sends the offsets to the \acro{GF}
+file; the lower section is the \acro{GF} encoding figure introduced in
+section~7 and the Go code that outputs that character. In the code,
+$\langle\dots\rangle$ is a named section, and the number after it is
+the number of that section.}
+\newpage\twocol
+
+\head * Acknowledgments *
+
+This project was possible thanks to the Korean \TeX\ Users Group
+(\acro{KTUG}), which has worked for many years to make Korean usable in
+\TeX. In particular, without Dohyun Kim~[10], who develops and
+maintains luatexko and luamplib, on which Korean \GWEB\ depends
+heavily, this project would not exist. I also thank Karl Berry, who
+took an interest in translating {\tt mf.web} into Korean \GWEB\ and
+encouraged me to write for \TUB.
+
+Above all, all of this began with Knuth's work. Most of my programming
+has been inspired by his many works. I do not dare to think what words
+of thanks would be fitting for him. I simply want to convey my sincere
+feelings with a quiet ``thank you''.
+
+\head * References *
+
+{\ninepoint\raggedright\frenchspacing
+\def\bib#1 {\par\hangindent=1.8em\noindent\hbox to1.8em{[#1]\hfil}}
+\def\s{\slash}
+\bib1 Donald E. Knuth. \MFTP. Computers \& Typesetting, Volume~D.
+  Addison-Wesley, 1986.
+\bib2 Donald E. Knuth. {\tt mf.web}, version 2.71828182, 2021.
+  \url{ctan.org\s tex-archive\s systems\s knuth\s dist\s mf}
+\bib3 Donald E. Knuth. Adventure ({\tt advent.w}).
+  \url{www-cs-faculty.stanford.edu\s \char`\~knuth\s programs\s
+  advent.w.gz}
+\bib4 Donald E. Knuth. The Stanford GraphBase.
+  \url{www-cs-faculty.stanford.edu\s \char`\~knuth\s sgb.html}
+\bib5 Donald E. Knuth. Literate programming.
+  \url{www-cs-faculty.stanford.edu\s \char`\~knuth\s lp.html}
+\bib6 Soojin Nam. \GWEB: Literate programming for Go.
+  \url{github.com\s sjnam\s gweb}
+\bib7 Soojin Nam. \GWEB\ examples.
+  \url{github.com\s sjnam\s gweb-examples}
+\bib8 Soojin Nam. metafont-the-program.
+  \url{github.com\s sjnam\s metafont-the-program}
+\bib9 Soojin Nam. tex-the-program.
+  \url{github.com\s sjnam\s tex-the-program}
+\bib{10} Dohyun Kim. \url{github.com\s dohyunkim}
+\par}
+
+\makesignature
+\endarticle
