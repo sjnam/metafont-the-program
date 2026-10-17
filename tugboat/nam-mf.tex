@@ -367,7 +367,7 @@ overflow can occur when a number of 32768 or more is to be represented
 as a scaled integer (an integer times $2^{16}$).
 
 \list[\numbered]\raggedright
-\item {\bf The lower threshold of |cull| (\S1074).} The original rounds
+\item {\it The lower threshold of\/} |cull| (\S1074). The original rounds
 the lower end up as |floor_unscaled(cur_x+unity-1)|. If a computed $a$
 is 32767.5 or more, this addition overflows, the lower end becomes
 $-32768$, pixels of weight~0 are kept too, and the picture is ruined.
@@ -377,10 +377,10 @@ instead of~0. The translation computes the ceiling as
 $\lceil x\rceil=-\lfloor -x\rfloor$ instead. For values that do not
 overflow the two formulas agree, so the result of the \acro{TRAP} test
 does not change.
-\item {\bf The window number of |display| (\S1071).} Converting an
+\item {\it The window number of\/} |display| (\S1071). Converting an
 out-of-range window number back with |cur_exp*unity| to show it in an
 error message can overflow. Only the number in the message is wrong.
-\item {\bf {\tt xoffset} and {\tt yoffset} (\S1165).} If an offset is
+\item |xoffset| {\it and\/} |yoffset| (\S1165). If an offset is
 32767.5 or more, a wrong value goes into the |yyy| command of the
 \acro{GF} file. The shapes of the characters are unaffected (the upper
 part of figure~A).
@@ -409,19 +409,20 @@ drew 26 figures. They are drawn during typesetting with luamplib: the
 Korean labels automatically match the text font. Here are a few.
 
 \list\raggedright
-\item {\bf Octants and Gray code (\S139, translation \S161).} Writing
+\item {\it Octants and Gray code\/} (\S139, translation \S161). Writing
 the original's codes in the eight octants shows that neighboring
 octants differ in only one bit (figure~C).
-\item {\bf The data structure of variables (\S229, translation
-\S286).} Knuth explains the structure for |x|, |x.a|, |x[]b|, |x5|,
+\item {\it The data structure of variables\/} (\S229, translation
+\S286). Knuth explains the structure for |x|, |x.a|, |x[]b|, |x5|,
 and |x20b| in words and says that the reader should draw a picture with
 a pencil. The translation adds a section right after it and draws that
 picture (figure~B).
-\item {\bf Hobby's velocity function (\S116), de Casteljau subdivision
-(\S303), Hobby's equivalence classes (\S525).} The approximation of
+\item {\it Hobby's velocity function\/} (\S116), {\it de Casteljau
+subdivision\/} (\S303), {\it Hobby's equivalence classes\/} (\S525).
+The approximation of
 curves, the subdivision of Bernstein polynomials, and the number theory
 behind elliptical pens, drawn following the examples of the original.
-\item {\bf \acro{GF} encoding (\S1167, translation \S1291).} For a
+\item {\it\acro{GF} encoding\/} (\S1167, translation \S1291). For a
 character shaped like a |T|, five pixels wide, the figure shows row by
 row which commands encode it (the lower part of figure~A).
 \endlist
@@ -524,7 +525,7 @@ is not part of Knuth's \MF\ package.
 This project was possible thanks to the Korean \TeX\ Users Group
 (\acro{KTUG}), which has worked for many years to make Korean usable in
 \TeX. In particular, without Dohyun Kim~[10], who develops and
-maintains luatexko and luamplib, on which Korean \GWEB\ depends
+maintains \LuaTeX-ko and luamplib, on which Korean \GWEB\ depends
 heavily, this project would not exist. I also thank Karl Berry, who
 took an interest in translating {\tt mf.web} into Korean \GWEB\ and
 encouraged me to write for \TUB.
