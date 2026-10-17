@@ -1,3 +1,20 @@
+<!--
+TUGboat 기고 초고 (한국어). 저자는 이 파일을 고치고, 영문 원고 nam-mf.tex는 이것을
+그대로 따른다. 영문판에만 있는 풀이는 그 자리에 "영문판에만"으로 시작하는 주석으로 적는다.
+
+Karl Berry의 조언(2026-10)을 반영해 고쳐 쓴 판이다.
+- Claude와 함께한 작업이라는 것을 밝히고 써도 좋다.
+- 다만 편집자들은 Claude의 글보다 서툰 영어라도 저자 자신의 말을 원한다(AI의 글은
+  장황해지기 쉽다). 그래서 문장을 짧게 하고, 같은 말을 되풀이하지 않는다. 영어로 옮길 때도
+  꾸밈을 보태지 말고 이 글의 문장을 그대로 옮긴다.
+- 영어의 질은 걱정하지 않아도 된다. Karl과 Barbara Beeton이 손봐 준다.
+- GWEB과 mf.web 번역을 함께 다루고, 번역은 한국어로 옮긴 면과 Go로 옮긴 면을 모두
+  다룬다. 왜 했는지도 쓴다. tex.web을 다른 프로그래밍 언어로 옮긴 예는 많아도(mf.web은 드물다)
+  사람의 언어로 옮긴 예는 Karl도 떠올리지 못했다. 이 두 가지가 이 글의 뼈대다.
+- 틀: https://tug.org/TUGboat/location.html. 저자는 plain TeX(tugboat.sty, TeX Live의
+  tugboat-plain 꾸러미, 안내서 tubguide.pdf)으로 쓰기로 했다. 보낼 곳은 TUGboat@tug.org.
+-->
+
 # 한글 GWEB으로 다시 쓴 *METAFONT: The Program*
 
 남수진(Soojin Nam)
@@ -31,12 +48,12 @@ GWEB을 더 낫게 다듬고 싶었다. 도구를 시험하기에는 장난감 �
 
 결과물 `mf.w`는 29,153줄이고, gtangle로 뽑은 Go 코드는 23,830줄이다. 원문의 52부를 그대로 따르며,
 조판하면 856쪽이 된다. 원문은 1,215절이고 번역은 1,353절이다(늘어난 까닭은 4절에서 말한다). 이 글에서
-§ 번호는 따로 말하지 않으면 원문의 번호이고, 번역의 번호가 필요할 때는 ``번역 §161''처럼 적는다.
+§ 번호는 따로 말하지 않으면 원문의 번호이고, 번역의 번호가 필요할 때는 “번역 §161”처럼 적는다.
 
 ## 2. GWEB
 
-**시작.** 나는 전에 크누스의 `advent.w`(https://www-cs-faculty.stanford.edu/~knuth/programs/advent.w.gz)와
-*The Stanford GraphBase*(https://www-cs-faculty.stanford.edu/~knuth/sgb.html)를 Go로 옮긴 적이 있다. 그때는
+**시작.** 나는 전에 크누스의 `advent.w`(<https://www-cs-faculty.stanford.edu/~knuth/programs/advent.w.gz>)와
+*The Stanford GraphBase*(<https://www-cs-faculty.stanford.edu/~knuth/sgb.html>)를 Go로 옮긴 적이 있다. 그때는
 문학적 프로그램이 아니라 그냥 Go 프로그램으로 옮겼다. 크누스의 저작에서 찾은 오류를 그의 버그 보고
 주소로 보내면서 이 일도 함께 알렸더니, 그는 그것이 문학적 프로그램이 아닌 것을 아쉬워하며 Go로 문학적
 프로그래밍을 하는 도구를 만들어 보라고 했다. 2026년 6월 18일에 받은 그 답장에 GWEB이라는 이름도
@@ -49,12 +66,12 @@ GWEB을 더 낫게 다듬고 싶었다. 도구를 시험하기에는 장난감 �
 > ...
 > Best wishes, Don
 
-그렇게 만든 GWEB(https://github.com/sjnam/gweb)은 지금 크누스의 문학적 프로그래밍 페이지
-(https://www-cs-faculty.stanford.edu/~knuth/lp.html)에 ``Soojin Nam's GWEB, an analog of CWEB for Go
-instead of C''라는 한 줄로 소개되어 있다.
+그렇게 만든 GWEB(<https://github.com/sjnam/gweb>)은 지금 크누스의 문학적 프로그래밍 페이지
+(<https://www-cs-faculty.stanford.edu/~knuth/lp.html>)에 “Soojin Nam's GWEB, an analog of CWEB for Go
+instead of C”라는 한 줄로 소개되어 있다.
 
 GWEB이 생긴 뒤, 그냥 Go 프로그램이던 advent.w와 SGB의 번역도 GWEB으로 다시 썼다
-(https://github.com/sjnam/go-advent, https://github.com/sjnam/go-sgb). 크누스의 아쉬움이 조금이나마
+(<https://github.com/sjnam/go-advent>, <https://github.com/sjnam/go-sgb>). 크누스의 아쉬움이 조금이나마
 풀렸기를 바란다. 다만 모두 한국어로 썼기 때문에 한국어를 모르는 사람과는 나눌 수 없다는 것이 아쉽다.
 
 **설계.** 이름 그대로 CWEB을 본떴다. gtangle이 Go 코드를 뽑고, gweave가 TeX 문서를 만든다. 바꿈 파일,
@@ -69,10 +86,10 @@ GWEB이 생긴 뒤, 그냥 Go 프로그램이던 advent.w와 SGB의 번역도 GW
   gweave는 원문의 띄어쓰기를 그대로 따르면 된다. Go에는 `gofmt`가 있고, `gofmt`가 다듬은 Go는 이미 그
   띄어쓰기에 문법을 담고 있기 때문이다(`*T`와 `a * b`, `a*b + c` 따위).
 - 한국어 문서는 림보에 `\input kotexgweb` 한 줄만 두면 된다. LuaTeX과 ko.TeX(luatexko)으로 조판하고,
-  gweave가 만드는 ``절 이름 목록'' 같은 낱말도 한국어로 바뀐다.
+  gweave가 만드는 “절 이름 목록” 같은 낱말도 한국어로 바뀐다.
 
 GWEB은 GWEB 자신으로 쓰였고, 다시 만들면 바이트까지 같은 결과가 나온다. 지금까지 TeX과 METAFONT
-말고도 Go 문학적 프로그램 서른 남짓을 한국어로 썼다(https://github.com/sjnam/gweb-examples). 모두
+말고도 Go 문학적 프로그램 서른 남짓을 한국어로 썼다(<https://github.com/sjnam/gweb-examples>). 모두
 GWEB을 더 튼튼하게 만들기 위한 테스트였다. 갓 태어난 프로그램은 세상에 내놓기 전에도, 내놓은 뒤에도
 많이 시험해 봐야 한다. 그런데 누가 그것을 시험해 주겠는가? 저자가 직접 해야지.
 
@@ -90,7 +107,8 @@ METAFONT 번역에 두 곳이었다.
 ```go
 if /*line mf.w:1406*/ k < ' ' || k > '~' /*line mf.w:1369*/ {
 ```
-<!-- 영문판에만: 단이 좁아 이 줄을 둘로 나누어 싣고, ``(gtangle의 출력에서는 한 줄이다.)''라고 덧붙였다. -->
+
+<!-- 영문판에만: 단이 좁아 이 줄을 둘로 나누어 싣고, “(gtangle의 출력에서는 한 줄이다.)”라고 덧붙였다. -->
 
 이 변화를 GWEB 0.10.4로 내놓은 뒤 여섯 곳을 모두 원문 꼴로 되돌렸다. 두 번역의 테스트는 그대로 통과했다.
 같은 판에서 상수의 글꼴도 cweave의 규칙(소문자가 없는 이름은 타자기체)에 맞추었다. 큰 프로그램을 옮기면
@@ -104,13 +122,13 @@ TeX Live의 출력에 바이트 단위로 견줄 수 없다. 찾아보기를 영
 쉽게 하려는 것이다.
 
 **절 이름.** 크누스의 절 이름은 대개 영어의 명령문이나 짧은 서술문이다. 한국어는 동사가 문장 끝에 오므로,
-절 이름도 ``~한다''로 끝나는 서술문으로 옮겼다. 이를테면 `@<Character |k| cannot be printed@>`는
+절 이름도 “~한다”로 끝나는 서술문으로 옮겼다. 이를테면 `@<Character |k| cannot be printed@>`는
 `@<문자 |k|를 찍을 수 없다@>`가 된다. 코드 안에서 절 이름은 한 줄의 짧은 한국어 문장으로 읽힌다.
 
-**식별자와 조사.** 한국어 조사는 앞말의 받침에 따라 모양이 바뀐다(``|k|를'', ``|mMagic|과'',
-``|futurePen|은''). <!-- 영문판에만: k는 ``케이''로 읽어 모음으로 끝나므로 ``를''이 붙고, futurePen은 자음으로 끝나므로 ``은''이 붙는다는 설명을 괄호로 덧붙였다. --> 그래서 영어 식별자를 어떻게 소리 내어 읽는지 정해야 조사를 붙일 수 있다. 또 한국어
-문장이 식별자나 수식으로 시작하면 읽기가 매우 어색하다. 그래서 ``|fraction|은 …''을 ``형 |fraction|은
-…''<!-- 영문판에만: (``the type fraction …'')라는 풀이를 덧붙였다. -->처럼, 그것을 가리키는 한국어 명사를 앞에 두었다. 번역을 마친 뒤 이 규칙을 어긴 문장을 다시 찾아보니
+**식별자와 조사.** 한국어 조사는 앞말의 받침에 따라 모양이 바뀐다(“|k|를”, “|mMagic|과”,
+“|futurePen|은”). <!-- 영문판에만: k는 “케이”로 읽어 모음으로 끝나므로 “를”이 붙고, futurePen은 자음으로 끝나므로 “은”이 붙는다는 설명을 괄호로 덧붙였다. --> 그래서 영어 식별자를 어떻게 소리 내어 읽는지 정해야 조사를 붙일 수 있다. 또 한국어
+문장이 식별자나 수식으로 시작하면 읽기가 매우 어색하다. 그래서 “|fraction|은 …”을 “형 |fraction|은
+…”<!-- 영문판에만: (“the type fraction …”)라는 풀이를 덧붙였다. -->처럼, 그것을 가리키는 한국어 명사를 앞에 두었다. 번역을 마친 뒤 이 규칙을 어긴 문장을 다시 찾아보니
 330곳쯤 되었고, 모두 고쳤다.
 
 **용어.** METAFONT의 용어는 대부분 한국어에 자리 잡은 번역어가 없다. 나는 될 수 있으면 쉬운 우리말을
@@ -131,9 +149,9 @@ TeX Live의 출력에 바이트 단위로 견줄 수 없다. 찾아보기를 영
 | pseudoprinting | 흉내 찍기 |
 | Stern--Brocot wreath | 스턴--브로코 화환 |
 
-**크누스의 어투.** 크누스의 글에는 유머가 많다. ``That which can be created can be destroyed''(§487)는
-``만들어질 수 있는 것은 부서질 수 있다''로, ``The former chastity has vanished!''(§1203)는 ``이전의 순결은
-사라졌다!''로 옮겼다. 뜻만 옮기면 웃음이 사라지고, 말맛을 살리면 뜻이 흐려진다. 그 사이에서 고민한 곳이
+**크누스의 어투.** 크누스의 글에는 유머가 많다. “That which can be created can be destroyed”(§487)는
+“만들어질 수 있는 것은 부서질 수 있다”로, “The former chastity has vanished!”(§1203)는 “이전의 순결은
+사라졌다!”로 옮겼다. 뜻만 옮기면 웃음이 사라지고, 말맛을 살리면 뜻이 흐려진다. 그 사이에서 고민한 곳이
 많다.
 
 ## 4. Go로 옮기기
@@ -149,9 +167,11 @@ TeX Live의 출력에 바이트 단위로 견줄 수 없다. 찾아보기를 영
 | 가변 레코드 `memory_word` | 필드를 따로 둔 구조체(36바이트) |
 | `@d half(#)==(#) div 2` | `func half(x int32) int32 { return x / 2 }` |
 | 문자열 풀에 미리 싣는 `"..."` 상수 | 목록 `poolLiterals`, 기반 파일의 검사합 |
-| `forward` 선언 | 필요 없음. 함수는 `@<함수들@>` 한 절에 모은다 | <!-- 영문판에만: 절 이름 뒤에 (Functions)라는 풀이를 덧붙였다. -->
+| `forward` 선언 | 필요 없음. 함수는 `@<함수들@>` 한 절에 모은다 |
 | 지역 레이블 `done`, `found` | 대부분 `break`, `continue`, 레이블 붙은 반복문 |
 | `stat ... tats`, `debug ... gubed` | `if stat { ... }`, `if debug { ... }` (상수 조건) |
+
+<!-- 영문판에만: 표의 `@<함수들@>` 뒤에 (Functions)라는 풀이를 덧붙였다. -->
 
 몇 가지만 설명한다.
 
@@ -230,7 +250,7 @@ cmtt10, cmss10, cmcsc10, cmfib8, logo10)을 200dpi와 600dpi로 만들어 `mf-no
 셋 다 실제 글꼴 작업에서는 드러나지 않는다. 가장자리 하나의 무게는 $\pm3$을 넘지 않으므로 화소의 무게가
 32768에 이르려면 칠하기를 만 번 넘게 겹쳐야 하고, 32768화소의 오프셋은 600dpi로 쳐도 1.4m가 넘는다. 게다가
 상수는 4096을 넘으면 훑을 때 이미 잘리므로, 이런 값은 일부러 계산해서 만들어야만 생긴다. 그래서 나는
-이것들을 ``버그''라기보다 ``이론상의 넘침''이라고 부르고, tex-k에 따로 보고하지 않았다. 크누스에게 갈
+이것들을 “버그”라기보다 “이론상의 넘침”이라고 부르고, tex-k에 따로 보고하지 않았다. 크누스에게 갈
 보고를 살펴 주는 분들도 이 글을 읽을 테니, 여기에 적어 두는 것으로 충분하다고 생각한다. 번역에서는
 첫째만 고치고 나머지 둘은 설명을 달아 두었다.
 
@@ -244,7 +264,7 @@ luamplib으로 조판하는 중에 그린다. MetaPost 코드가 `.w` 파일 안
 - **팔분면과 그레이 코드(§139, 번역 §161).** 여덟 팔분면에 원문의 코드를 적으면 이웃한 팔분면끼리 비트
   하나만 다르다는 것이 드러난다(그림 C).
 - **변수의 자료 구조(§229, 번역 §286).** 크누스는 `x`, `x.a`, `x[]b`, `x5`, `x20b`의 구조를 말로
-  설명하며 ``연필로 그림을 그려 보라''고 쓴다. 번역에서는 그 뒤에 절을 하나 더해 그 그림을 그렸다(그림 B).
+  설명하며 “연필로 그림을 그려 보라”고 쓴다. 번역에서는 그 뒤에 절을 하나 더해 그 그림을 그렸다(그림 B).
 - **하비의 속도 함수(§116), 드 카스텔조 분할(§303), 하비의 동치류(§525).** 곡선의 근사, 번스타인
   다항식의 분할, 타원 펜의 바탕인 정수론을 원문의 보기에 따라 그렸다.
 - **GF 부호화(§1167, 번역 §1291).** 다섯 화소 너비의 `T` 모양 문자가 어떤 명령으로 부호화되는지 행마다
@@ -261,7 +281,7 @@ luamplib으로 조판하는 중에 그린다. MetaPost 코드가 `.w` 파일 안
 **그림 C.** 팔분면의 이름과 그레이 코드(§139, 번역 §161). 각 칸의 위는 팔분면의 이름, 아래는 원문이
 정한 코드(`first_octant`$=1$, `second_octant`$=5$, …)다. 코드에서 1을 뺀 세 비트는 `negate_x`,
 `negate_y`, `switch_x_and_y`를 뜻한다. 이 글에서는 이름을 영어로 적었지만, 번역 문서의 그림에는
-``첫째''부터 ``여덟째''까지 한국어로 적혀 있다.
+“첫째”부터 “여덟째”까지 한국어로 적혀 있다.
 
 ## 8. Claude와 함께한 작업
 
@@ -304,9 +324,9 @@ Claude와의 작업은 놀라움의 연속이었다. 가끔은 어린아이도 �
 
 번역과 GWEB은 GitHub에 있다.
 
-- https://github.com/sjnam/metafont-the-program
-- https://github.com/sjnam/tex-the-program
-- https://github.com/sjnam/gweb
+- <https://github.com/sjnam/metafont-the-program>
+- <https://github.com/sjnam/tex-the-program>
+- <https://github.com/sjnam/gweb>
 
 원본 `mf.web`의 저작권은 크누스에게 있다. 원본의 조건에 따라 이 번역은 `mf.web`이라는 이름을 쓰지 않으며,
 크누스의 METAFONT 꾸러미의 일부가 아니다.
@@ -315,9 +335,9 @@ Claude와의 작업은 놀라움의 연속이었다. 가끔은 어린아이도 �
 
 이 프로젝트는 TeX에서 한글을 쓰기 위해 오랫동안 애써 온 한글 TeX 사용자 모임(KTUG) 덕분에 가능했다.
 특히 한글 GWEB이 많이 기대고 있는 LuaTeX-ko와 luamplib을 개발하고 관리하는 김도현 님
-(https://github.com/dohyunkim)이 아니었다면 이 프로젝트는 없었을 것이다. mf.web을 한글 GWEB으로 옮기는
+(<https://github.com/dohyunkim/luatexko>, <https://github.com/dohyunkim/luamplib>)이 아니었다면 이 프로젝트는 없었을 것이다. mf.web을 한글 GWEB으로 옮기는
 일에 관심을 보이고, TUGboat에 기고할 용기를 북돋워 준 Karl Berry에게도 고마움을 전한다.
 
 무엇보다 이 모든 일은 크누스의 저작에서 시작했다. 내 프로그래밍 작업은 대부분 그의 여러 결과물에서
 영감을 얻었다. 크누스께는 어떤 감사의 말을 드려야 할지 감히 떠오르지 않는다. 그저 담담하게
-``감사합니다''라는 말로 진심을 전하고 싶다.
+“감사합니다”라는 말로 진심을 전하고 싶다.
