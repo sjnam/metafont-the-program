@@ -16,8 +16,10 @@
 \def\id#1{\hbox{\it #1\/}}
 \def\sect#1{$\langle\,$#1$\,\rangle$}
 \def\url#1{{\tt #1}}
-\def\image#1#2{\saveimageresource width #1 {#2}%
-  \useimageresource\lastsavedimageresourceindex}
+% Figures B and C are drawn with MetaPost during typesetting, as in the
+% translation itself.  They are not put in a macro argument (such as
+% that of \centerline), since their labels contain # in \halign.
+\input luamplib.sty
 \def\figcaption#1#2{\smallskip
   {\ninepoint\noindent{\bf #1}\enspace #2\par}}
 
@@ -88,6 +90,13 @@ and suggested that I write a tool for literate programming in Go. The
 name \GWEB\ first appears in that reply, which I received on June~18,
 2026. The first commit of \GWEB\ was made the next day.
 
+% Note to the editors: the quotation below is part of Knuth's reply to
+% me (June 18, 2026). I have not asked his permission to publish it,
+% since he does not use personal email and I could not easily reach
+% him. Could you advise whether it is all right to print it as is,
+% or whether permission should be obtained first (perhaps through
+% you)? If it cannot be used, the quotation can simply be removed; the
+% paragraph above already tells the story.
 {\narrower\smallskip\noindent\it
 About porting SGB and ADVENTURE to Go: I'm very glad that you have
 enjoyed these algorithms. But I'm disappointed that you seem to have
@@ -428,7 +437,76 @@ row which commands encode it (the lower part of figure~A).
 \endlist
 
 \figure
-\centerline{\image{\hsize}{fig-b-variables.pdf}}
+\hbox to\hsize{\hss\mplibcode
+beginfig(1);
+bboxmargin := 2.5pt;
+vardef placed(expr pic, c) = pic shifted (c - center pic) enddef;
+vardef boxed(expr pic, c) =
+  save q; picture q; q := placed(pic, c); draw q; draw bbox q; q
+enddef;
+vardef westof(expr q) = (xpart llcorner bbox q, ypart center q) enddef;
+vardef eastof(expr q) = (xpart lrcorner bbox q, ypart center q) enddef;
+vardef northof(expr q) = (xpart center q, ypart ulcorner bbox q) enddef;
+vardef southof(expr q) = (xpart center q, ypart llcorner bbox q) enddef;
+save u, v, z, nd; numeric u, v; u := 44pt; v := 28pt;
+pair z[]; picture nd[];
+z1 = (0,0);                                       % p
+z2 = (0,-v); z3 = (u,-v); z4 = (3u,-v); z5 = (4u,-v); % q, q1, q2, endAttr
+z6 = (u,-2v); z7 = (2u,-2v); z8 = (3u,-2v);       % qq, qq1, qq2
+z9 = (0,-3.2v); z10 = (u,-3.2v);                  % r, r1
+z11 = (u,-4.2v); z12 = (2u,-4.2v); z13 = (3u,-4.2v); % qqq, qqq1, qqq2
+nd1 = boxed(btex \strut\ninett x etex, z1);
+nd2 = boxed(btex \strut\ninett x etex, z2);
+nd3 = boxed(btex \strut\ninett x[] etex, z3);
+nd4 = boxed(btex \strut\ninett x.a etex, z4);
+nd5 = boxed(btex \strut\ninepoint\it endAttr\/ etex, z5);
+nd6 = boxed(btex \strut\ninett x[] etex, z6);
+nd7 = boxed(btex \strut\ninett x[][] etex, z7);
+nd8 = boxed(btex \strut\ninett x[]b etex, z8);
+nd9 = boxed(btex \strut\ninett x5 etex, z9);
+nd10 = boxed(btex \strut\ninett x20 etex, z10);
+nd11 = boxed(btex \strut\ninett x20 etex, z11);
+nd12 = boxed(btex \strut\ninett x20[] etex, z12);
+nd13 = boxed(btex \strut\ninett x20b etex, z13);
+label.top(btex $p$ etex, northof(nd1));
+label.lft(btex $q$ etex, westof(nd2));
+label.ulft(btex $q_1$ etex, ulcorner bbox nd3);
+label.top(btex $q_2$ etex, northof(nd4));
+label.lft(btex $qq$ etex, westof(nd6)-(9pt,0));
+label.top(btex $qq_1$ etex, northof(nd7));
+label.top(btex $qq_2$ etex, northof(nd8));
+label.top(btex $r$ etex, northof(nd9));
+label.urt(btex $r_1$ etex, urcorner bbox nd10);
+label.lft(btex $qqq$ etex, westof(nd11)-(9pt,0));
+label.top(btex $qqq_1$ etex, northof(nd12));
+label.top(btex $qqq_2$ etex, northof(nd13));
+% link
+drawarrow eastof(nd2)--westof(nd3);
+drawarrow eastof(nd3)--westof(nd4);
+drawarrow eastof(nd4)--westof(nd5);
+drawarrow eastof(nd6)--westof(nd7);
+drawarrow eastof(nd7)--westof(nd8);
+drawarrow eastof(nd8){right}..{up}southof(nd5);
+drawarrow eastof(nd9)--westof(nd10);
+drawarrow eastof(nd11)--westof(nd12);
+drawarrow eastof(nd12)--westof(nd13);
+drawarrow eastof(nd13){right}..(4u,-3v)..{up}(southof(nd5)+(4pt,0));
+% r1 -> q1
+drawarrow (northof(nd10)+(8pt,0)){up}..{up}(southof(nd3)+(8pt,0));
+% attr_head
+drawarrow southof(nd1)--northof(nd2) withpen pencircle scaled 1.2pt;
+drawarrow southof(nd3)--northof(nd6) withpen pencircle scaled 1.2pt;
+drawarrow southof(nd10)--northof(nd11) withpen pencircle scaled 1.2pt;
+% subscr_head
+drawarrow westof(nd1){left}..{down}(-.5u,-2v)..{right}westof(nd9)
+  dashed withdots scaled .6;
+drawarrow (southof(nd3)+(-8pt,0)){down}..(westof(nd6)-(7pt,0))
+  ..(southof(nd6)-(0,6pt))..{right}westof(nd7) dashed withdots scaled .6;
+drawarrow (southof(nd10)+(-8pt,0)){down}..(westof(nd11)-(7pt,0))
+  ..(southof(nd11)-(0,6pt))..(1.5u,-4.75v)..{up}southof(nd12)
+  dashed withdots scaled .6;
+endfig;
+\endmplibcode\hss}
 \figcaption{Figure B.}{The example of \S229 drawn (translation \S286):
 the structure of variables after the user has mentioned |x|, |x.a|,
 |x[]b|, |x5|, and |x20b| and declared |x[]b| to be {\bf boolean}.
@@ -441,7 +519,32 @@ for the structure under an actual subscript.}
 \endfigure
 
 \figure
-\centerline{\image{.75\hsize}{fig-c-octants-en.pdf}}
+\hbox to\hsize{\hss\mplibcode
+beginfig(2);
+save u; numeric u; u := 76pt;
+for k = 0 upto 3:
+  draw (dir(45k)*-1.15u)--(dir(45k)*1.15u) withpen pencircle scaled .3pt;
+endfor
+draw fullcircle scaled 2.3u withpen pencircle scaled .3pt;
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr first\cr 1\cr}} etex,
+  dir(22.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr second\cr 5\cr}} etex,
+  dir(67.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr third\cr 6\cr}} etex,
+  dir(112.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr fourth\cr 2\cr}} etex,
+  dir(157.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr fifth\cr 4\cr}} etex,
+  dir(202.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr sixth\cr 8\cr}} etex,
+  dir(247.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr seventh\cr 7\cr}} etex,
+  dir(292.5)*.74u);
+label(btex \ninepoint\vbox{\halign{\hfil#\hfil\cr eighth\cr 3\cr}} etex,
+  dir(337.5)*.74u);
+label.rt(btex $x$ etex, (1.15u,0)); label.top(btex $y$ etex, (0,1.15u));
+endfig;
+\endmplibcode\hss}
 \figcaption{Figure C.}{Octant names and the Gray code (\S139, translation
 \S161). The top of each cell gives the name of the octant; the bottom
 gives the code defined in the original (\id{first\_octant}${}=1$,
