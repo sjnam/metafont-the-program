@@ -66,7 +66,7 @@ than a toy program, so choosing Knuth's programs was natural. There is
 no better test than real use.
 
 Before this, I translated \TP\ in the same way
-(tex-the-program~[9]); this work (metafont-the-program~[8]) applies
+(tex-the-program~[13]); this work (metafont-the-program~[12]) applies
 that experience to \MF. As far as I know, {\tt tex.web} has been
 translated into many programming languages, but translations of
 {\tt mf.web} are rare, and neither has been translated into another
@@ -84,7 +84,7 @@ as ``translation \S161''.
 
 \subhead * Beginnings *
 Some time ago I ported Knuth's {\tt advent.w}~[3] and
-{\sl The Stanford GraphBase\/}~[4] to Go. I ported them as ordinary Go
+{\sl The Stanford GraphBase\/}~[7] to Go. I ported them as ordinary Go
 programs, not as literate programs. When I sent Knuth an error I had
 found in his work, at his address for bug reports, I also told him
 about these ports. He regretted that they were not literate programs
@@ -106,12 +106,12 @@ eliminated the "literate" aspect! Is there not a tool for literate
 programming in Go? If not, why not write GWEB? \dots\par\smallskip
 \noindent Best wishes, Don\smallskip}
 
-The \GWEB\ that came of it~[6] is now introduced on Knuth's literate
-programming page~[5] in one line: ``Soojin Nam's \GWEB, an analog of
+The \GWEB\ that came of it~[10] is now introduced on Knuth's literate
+programming page~[4] in one line: ``Soojin Nam's \GWEB, an analog of
 \CWEB\ for Go instead of C''.
 
 After \GWEB\ was born, I also rewrote in \GWEB\ my ports of
-{\tt advent.w} and the SGB, which had been plain Go programs~[12, 13].
+{\tt advent.w} and the SGB, which had been plain Go programs~[8, 9].
 I hope this eases Knuth's disappointment a little. My only regret is
 that they are all written in Korean, so I cannot share them with people
 who do not read Korean.
@@ -142,7 +142,7 @@ sections'', become Korean too.
 
 \GWEB\ is written in \GWEB\ itself, and rebuilding it gives a
 byte-identical result. Besides \TeX\ and \MF, I have written
-about thirty literate Go programs in Korean with it~[7]. All of them
+about thirty literate Go programs in Korean with it~[11]. All of them
 were tests to make \GWEB\ sturdier. A newborn program needs much
 testing, both before it goes out into the world and after. But who
 will test it? The author has to do it.
@@ -523,7 +523,7 @@ for the structure under an actual subscript.}
 \figure
 \hbox to\hsize{\hss\mplibcode
 beginfig(2);
-save u; numeric u; u := 76pt;
+save u; numeric u; u := 65pt;
 for k = 0 upto 3:
   draw (dir(45k)*-1.15u)--(dir(45k)*1.15u) withpen pencircle scaled .3pt;
 endfor
@@ -633,7 +633,7 @@ suggestion, came a step closer to \CWEB\ while translating Knuth's
 program. The \MF\ translation was written as a literate program from
 the start, so it is a late reply to that suggestion.
 
-The translations and \GWEB\ are on GitHub~[6, 8, 9]. The copyright of
+The translations and \GWEB\ are on GitHub~[10, 12, 13]. The copyright of
 the original {\tt mf.web} belongs to Knuth. Following the conditions of
 the original, this translation does not use the name {\tt mf.web} and
 is not part of Knuth's \MF\ package.
@@ -642,7 +642,7 @@ is not part of Knuth's \MF\ package.
 
 This project was possible thanks to the Korean \TeX\ Users Group
 (\acro{KTUG}), which has worked for many years to make Korean usable in
-\TeX. In particular, without Dohyun Kim~[10,11], who develops and
+\TeX. In particular, without Dohyun Kim~[1, 2], who develops and
 maintains \LuaTeX-ko and luamplib, on which Korean \GWEB\ depends
 heavily, this project would not exist. I also thank Karl Berry, who
 took an interest in translating {\tt mf.web} into Korean \GWEB\ and
@@ -658,29 +658,29 @@ feelings with a quiet ``thank you''.
 {\ninepoint\raggedright\frenchspacing
 \def\bib#1 {\par\hangindent=1.8em\noindent\hbox to1.8em{[#1]\hfil}}
 \def\s{\slash}
-\bib1 Donald E. Knuth. \MFTP. Computers \& Typesetting, Volume~D.
-  Addison-Wesley, 1986.
-\bib2 Donald E. Knuth. {\tt mf.web}, version 2.71828182, 2021.
-  \url{ctan.org\s tex-archive\s systems\s knuth\s dist\s mf}
+\bib1 Dohyun Kim. luamplib. \url{github.com\s dohyunkim\s luamplib}
+\bib2 Dohyun Kim. \LuaTeX-ko. \url{github.com\s dohyunkim\s luatexko}
 \bib3 Donald E. Knuth. Adventure ({\tt advent.w}).
   \url{www-cs-faculty.stanford.edu\s \char`\~knuth\s programs\s
   advent.w.gz}
-\bib4 Donald E. Knuth. The Stanford GraphBase.
-  \url{www-cs-faculty.stanford.edu\s \char`\~knuth\s sgb.html}
-\bib5 Donald E. Knuth. Literate programming.
+\bib4 Donald E. Knuth. Literate programming.
   \url{www-cs-faculty.stanford.edu\s \char`\~knuth\s lp.html}
-\bib6 Soojin Nam. \GWEB: Literate programming for Go.
+\bib5 Donald E. Knuth. \MFTP. Computers \& Typesetting, Volume~D.
+  Addison-Wesley, 1986.
+\bib6 Donald E. Knuth. {\tt mf.web}, version 2.71828182, 2021.
+  \url{ctan.org\s tex-archive\s systems\s knuth\s dist\s mf}
+\bib7 Donald E. Knuth. The Stanford GraphBase.
+  \url{www-cs-faculty.stanford.edu\s \char`\~knuth\s sgb.html}
+\bib8 Soojin Nam. go-advent. \url{github.com\s sjnam\s go-advent}
+\bib9 Soojin Nam. go-sgb. \url{github.com\s sjnam\s go-sgb}
+\bib{10} Soojin Nam. \GWEB: Literate programming for Go.
   \url{github.com\s sjnam\s gweb}
-\bib7 Soojin Nam. \GWEB\ examples.
+\bib{11} Soojin Nam. \GWEB\ examples.
   \url{github.com\s sjnam\s gweb-examples}
-\bib8 Soojin Nam. metafont-the-program.
+\bib{12} Soojin Nam. metafont-the-program.
   \url{github.com\s sjnam\s metafont-the-program}
-\bib9 Soojin Nam. tex-the-program.
+\bib{13} Soojin Nam. tex-the-program.
   \url{github.com\s sjnam\s tex-the-program}
-\bib{10} Dohyun Kim. \url{github.com\s dohyunkim\s luatexko}
-\bib{11} Dohyun Kim. \url{github.com\s dohyunkim\s luamplib}
-\bib{12} Soojin Nam. go-advent. \url{github.com\s sjnam\s go-advent}
-\bib{13} Soojin Nam. go-sgb. \url{github.com\s sjnam\s go-sgb}
 \par}
 
 \makesignature
