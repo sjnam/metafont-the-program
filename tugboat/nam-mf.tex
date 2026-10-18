@@ -45,9 +45,9 @@ a small error in the original that I found along the way.
 
 \head * 1\quad Introduction *
 
-I am a retired programmer who has used \TeX\ for more than thirty
+I am a retired computer programmer who has used \TeX\ for more than thirty
 years. Since retiring I have had plenty of time, and that time, along
-with being a fan of Knuth, made this work possible. I had two reasons
+with being a fan of Don Knuth, made this work possible. I had two reasons
 for starting it.
 
 First, I wanted to learn from a large program written by a master: how
@@ -99,12 +99,12 @@ name \GWEB\ first appears in that reply, which I received on June~18,
 % or whether permission should be obtained first (perhaps through
 % you)? If it cannot be used, the quotation can simply be removed; the
 % paragraph above already tells the story.
-{\narrower\smallskip\noindent\it
-About porting {\rm SGB} and {\rm ADVENTURE} to Go: I'm very glad that
+{\narrower\smallskip\noindent\ninepoint\tt\raggedright
+About porting SGB and ADVENTURE to Go: I'm very glad that
 you have enjoyed these algorithms. But I'm disappointed that you seem to have
-eliminated the ``literate'' aspect! Is there not a tool for literate
-programming in Go? If not, why not write {\rm GWEB}?\/ \dots\par
-\rightline{Best wishes, Don}\smallskip}
+eliminated the "literate" aspect! Is there not a tool for literate
+programming in Go? If not, why not write GWEB? \dots\par\smallskip
+\noindent Best wishes, Don\smallskip}
 
 The \GWEB\ that came of it~[6] is now introduced on Knuth's literate
 programming page~[5] in one line: ``Soojin Nam's \GWEB, an analog of
@@ -574,21 +574,33 @@ that the index section of the original was missing, that letters in
 figures overlapped lines, and so on. It was also I who remembered the
 workaround in \GWEB\ and proposed fixing it in \GWEB. I also polished
 the wording of the Korean translation so that it reads more naturally.
+Above all, I took pains over the Go code. I had the traces of Pascal
+removed and Go's conventions followed, so that it would look as if
+Knuth had written it in Go from the start. Making full use of Go's
+features might have made it faster, but I did not do that. In \S1 of
+{\tt mf.web} Knuth wrote that semi-automatic translation to other
+languages is feasible because the program does not make extensive use
+of features peculiar to Pascal. I kept that spirit and avoided, as far
+as possible, features peculiar to Go.
 
 \subhead * What Claude did *
 Claude read the original and wrote the Korean prose and the Go code,
 drew the \MP\ figures, and wrote and ran test scripts. Claude was also
-the first to notice the error in \S587. When I asked whether it was
-sure this was a typo, it cited the definitions in the paragraph and the
-code as evidence, and searched Knuth's errata and \acro{TUG}'s list to
-confirm that it had not yet been reported.
+the first to notice the error in \S587. When I read the passage,
+Claude did seem to be right. But a bug must be confirmed carefully, so
+I asked whether it was sure this was a typo. It cited the definitions
+in the paragraph and the code as evidence, and searched Knuth's errata
+and \acro{TUG}'s list to confirm that it had not yet been reported.
+When I reported it to tex-k, the person in charge agreed. Once again I
+was amazed at Claude's care and concentration.
 
 \subhead * Working together *
-Above all, the work took far less time than I had expected: less than
-a week. Alone it would have taken me well over a year, and that only
-if I had kept at it steadily and persistently. Moreover, the careful
-and thorough testing done in that short time is something I could
-never have imagined doing alone.
+What surprised me most in working with Claude was its speed. The work
+took far less time than I had expected: less than a week. Alone,
+understanding and translating the program would have taken me well
+over a year, and that only if I had kept at it steadily and
+persistently. Moreover, the careful and thorough testing done in that
+short time is something I could never have imagined doing alone.
 
 Working with Claude was one surprise after another. Sometimes it makes
 mistakes that even a child would not make. It sometimes uses commands
