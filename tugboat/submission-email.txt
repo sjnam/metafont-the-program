@@ -1,0 +1,55 @@
+To: TUGboat@tug.org
+Cc: Karl Berry <karl@freefriends.org>
+Subject: TUGboat submission: METAFONT: The Program rewritten with Korean GWEB
+
+Hi Karl,
+
+As you suggested, I have written an article for TUGboat about my
+translation of mf.web into Korean and Go, and about GWEB. It is
+attached.
+
+Attached files:
+
+  soojin-nam-mf-gweb.tex   the article (plain TeX, tugboat.sty)
+  fig-a-p767-crop.pdf      figure A, a page of the translation
+  soojin-nam-mf-gweb.pdf   the typeset result, for reference
+  article-ko.md            my original draft in Korean (Markdown)
+
+Some notes on typesetting:
+
+- Please typeset it with luatex:  luatex soojin-nam-mf-gweb.tex
+  It gives no overfull or underfull boxes.
+- The few Korean words use UnBatang.ttf from TeX Live (unfonts-core),
+  loaded by file name, not by a system font lookup.
+- Figures B and C are drawn with MetaPost during typesetting, using
+  luamplib, as in the translation itself. Figure A is a PDF.
+- Figure A takes a whole page, so I put it at the end. Please move it
+  wherever it fits best.
+
+As I told you before, I did this work together with Claude, an AI
+model from Anthropic, and section 8 of the article says so. The
+article itself was made the same way. I wrote it in Korean, in
+article-ko.md, with Claude's help on the first draft; I then rewrote
+and expanded it myself, so it says what I want to say, in my own
+words. Claude translated the Korean into English as directly as
+possible, without adding its own words. Whenever I revise the article,
+I revise the Korean draft, and the English follows it. Please feel
+free to fix my English.
+
+One question: section 2 quotes part of Knuth's reply to me
+(June 18, 2026), in which he suggested GWEB. I have not asked his
+permission to print it, because he does not use personal email. Is it
+all right to print it as is, or should permission be obtained first?
+If it cannot be used, the quotation can simply be removed; the text
+around it already tells the story. There is also a comment about this
+in the source.
+
+I am in no hurry. If it is too late for the next issue, a later issue
+is fine.
+
+Thank you for your encouragement.
+
+Best regards,
+Soojin Nam
+jsunam@gmail.com
+https://sjnam.github.io

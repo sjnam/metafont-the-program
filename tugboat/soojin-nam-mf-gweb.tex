@@ -14,6 +14,8 @@
 \def\GWEB{{\tt GWEB}\spacefactor1000 }
 \def\CWEB{{\tt CWEB}\spacefactor1000 }
 \def\LuaTeX{Lua\TeX}
+% The title, abstract, and references use only standard TeX and TUGboat
+% macros.
 \def\MFTP{{\sl \slMF: The Program\/}}
 \def\id#1{\hbox{\it #1\/}}
 \def\sect#1{$\langle\,$#1$\,\rangle$}
@@ -25,7 +27,7 @@
 \def\figcaption#1#2{\smallskip
   {\ninepoint\noindent{\bf #1}\enspace #2\par}}
 
-\title * \MFTP\ rewritten with Korean \GWEB\ *
+\title * {\sl \slMF: The Program\/} rewritten with Korean {\tt GWEB} *
 \author * Soojin Nam *
 \address * South Korea *
 \netaddress * jsunam@gmail.com\\ https://sjnam.github.io *
@@ -33,15 +35,15 @@
 \article
 
 \subhead * Abstract *
-I rewrote Knuth's \MFTP\ ({\tt mf.web}, version 2.71828182) in full
-as a literate program. The prose is in Korean, the code is in Go, and
-the tool is \GWEB, which I wrote. The result passes the \acro{TRAP}
-test and produces eleven Computer Modern fonts identical, byte for byte,
-to those made by the \MF\ of \TeX\ Live. I did this work together with
-Claude, an \acro{AI} model from Anthropic. This article tells how
-\GWEB\ came about and how this work improved it, the problems of
-translating into a human language and into a programming language, and
-a small error in the original that I found along the way.
+I rewrote Knuth's {\sl \slMF: The Program\/} ({\tt mf.web}, version
+2.71828182) in full as a literate program. The prose is in Korean, the
+code is in Go, and the tool is {\tt GWEB}, which I wrote. The result
+passes the \acro{TRAP} test and produces eleven Computer Modern fonts
+identical, byte for byte, to those made by the \MF\ of \TeX\ Live. I did
+this work together with Claude, an \acro{AI} model from Anthropic. This
+article tells how {\tt GWEB} came about and how this work improved it,
+the problems of translating into a human language and into a programming
+language, and a small error in the original that I found along the way.
 
 \head * 1\quad Introduction *
 
@@ -665,7 +667,8 @@ feelings with a quiet ``thank you''.
   advent.w.gz}
 \bib4 Donald E. Knuth. Literate programming.
   \url{www-cs-faculty.stanford.edu\s \char`\~knuth\s lp.html}
-\bib5 Donald E. Knuth. \MFTP. Computers \& Typesetting, Volume~D.
+\bib5 Donald E. Knuth. {\sl \slMF: The Program}. Computers \&
+  Typesetting, Volume~D.
   Addison-Wesley, 1986.
 \bib6 Donald E. Knuth. {\tt mf.web}, version 2.71828182, 2021.
   \url{ctan.org\s tex-archive\s systems\s knuth\s dist\s mf}
@@ -673,9 +676,9 @@ feelings with a quiet ``thank you''.
   \url{www-cs-faculty.stanford.edu\s \char`\~knuth\s sgb.html}
 \bib8 Soojin Nam. go-advent. \url{github.com\s sjnam\s go-advent}
 \bib9 Soojin Nam. go-sgb. \url{github.com\s sjnam\s go-sgb}
-\bib{10} Soojin Nam. \GWEB: Literate programming for Go.
+\bib{10} Soojin Nam. {\tt GWEB}: Literate programming for Go.
   \url{github.com\s sjnam\s gweb}
-\bib{11} Soojin Nam. \GWEB\ examples.
+\bib{11} Soojin Nam. {\tt GWEB} examples.
   \url{github.com\s sjnam\s gweb-examples}
 \bib{12} Soojin Nam. metafont-the-program.
   \url{github.com\s sjnam\s metafont-the-program}
