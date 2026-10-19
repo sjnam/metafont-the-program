@@ -13,7 +13,6 @@ Attached files:
   soojin-nam-mf-gweb.tex   the article (plain TeX, tugboat.sty)
   fig-a-p767-crop.pdf      figure A, a page of the translation
   soojin-nam-mf-gweb.pdf   the typeset result, for reference
-  article-ko.md            my original draft in Korean (Markdown)
 
 Some notes on typesetting:
 
@@ -28,13 +27,13 @@ Some notes on typesetting:
 
 As I told you before, I did this work together with Claude, an AI
 model from Anthropic, and section 8 of the article says so. The
-article itself was made the same way. I wrote it in Korean, in
-article-ko.md, with Claude's help on the first draft; I then rewrote
-and expanded it myself, so it says what I want to say, in my own
-words. Claude translated the Korean into English as directly as
-possible, without adding its own words. Whenever I revise the article,
-I revise the Korean draft, and the English follows it. Please feel
-free to fix my English.
+article itself was made the same way. I wrote it in Korean, with
+Claude's help on the first draft; I then rewrote and expanded it
+myself, so it says what I want to say, in my own words. Claude
+translated the Korean into English as directly as possible, without
+adding its own words. Whenever I revise the article, I revise the
+Korean draft, and the English follows it. Please feel free to fix my
+English.
 
 One question: section 2 quotes part of Knuth's reply to me
 (June 18, 2026), in which he suggested GWEB. I have not asked his
