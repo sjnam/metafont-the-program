@@ -29,8 +29,8 @@
 
 \title * {\sl \slMF: The Program\/} rewritten with Korean {\tt GWEB} *
 \author * Soojin Nam *
-\address * South Korea *
-\netaddress * jsunam@gmail.com\\ https://sjnam.github.io *
+\address * Seoul, South Korea *
+\netaddress * jsunam (at) gmail (dot) com\\ https://sjnam.github.io *
 
 \article
 
@@ -39,11 +39,13 @@ I rewrote Knuth's {\sl \slMF: The Program\/} ({\tt mf.web}, version
 2.71828182) in full as a literate program. The prose is in Korean, the
 code is in Go, and the tool is {\tt GWEB}, which I wrote. The result
 passes the \acro{TRAP} test and produces eleven Computer Modern fonts
-identical, byte for byte, to those made by the \MF\ of \TeX\ Live. I did
-this work together with Claude, an \acro{AI} model from Anthropic. This
+identical, byte for byte, to those made by the \MF\ of \TeX\ Live. This
 article tells how {\tt GWEB} came about and how this work improved it,
 the problems of translating into a human language and into a programming
 language, and a small error in the original that I found along the way.
+I did this work together with Claude, an \acro{AI} model from Anthropic.
+Working with Claude was a fresh and surprising experience, and I also
+write about my impressions of it.
 
 \head * 1\quad Introduction *
 
@@ -54,8 +56,7 @@ for starting it.
 
 First, I wanted to learn from a large program written by a master: how
 to build a program, and how to turn algorithms into concrete code.
-\MF\ seemed to have even more interesting algorithms than \TeX. To
-read such a masterpiece again and again and understand it more deeply,
+To read such a masterpiece again and again and understand it more deeply,
 translating it into Korean,
 my native language, was the natural thing for me to do. One cannot
 translate a sentence without understanding it, so translation is also
@@ -67,12 +68,10 @@ process. To test a tool, a large, well-structured program is better
 than a toy program, so choosing Knuth's programs was natural. There is
 no better test than real use.
 
-Before this, I translated \TP\ in the same way
-(tex-the-program~[13]); this work (metafont-the-program~[12]) applies
-that experience to \MF. As far as I know, {\tt tex.web} has been
-translated into many programming languages, but translations of
-{\tt mf.web} are rare, and neither has been translated into another
-human language. In that sense this translation is unusual in two ways.
+Before this, I translated \TP\ in the same way~[13]. As far as I
+know, neither program has been translated into another human language
+before, and translations of {\tt mf.web} into other programming
+languages are rare.
 
 The result, {\tt mf.w}, has 29,153 lines, and the Go code that
 {\tt gtangle} extracts from it has 23,830 lines. It follows the 52
@@ -85,7 +84,7 @@ as ``translation \S161''.
 \head * 2\quad \GWEB\ *
 
 \subhead * Beginnings *
-Some time ago I ported Knuth's {\tt advent.w}~[3] and
+Some time ago I ported Knuth's {\sl Adventure\/}~[3] and
 {\sl The Stanford GraphBase\/}~[7] to Go. I ported them as ordinary Go
 programs, not as literate programs. When I sent Knuth an error I had
 found in his work, at his address for bug reports, I also told him
@@ -113,7 +112,7 @@ programming page~[4] in one line: ``Soojin Nam's \GWEB, an analog of
 \CWEB\ for Go instead of C''.
 
 After \GWEB\ was born, I also rewrote in \GWEB\ my ports of
-{\tt advent.w} and the SGB, which had been plain Go programs~[8, 9].
+Adventure and the SGB, which had been plain Go programs~[8, 9].
 I hope this eases Knuth's disappointment a little. My only regret is
 that they are all written in Korean, so I cannot share them with people
 who do not read Korean.
@@ -568,14 +567,13 @@ Code). Here is who did what.
 \subhead * What I did *
 I wrote \GWEB, on which this work is based, and I set the direction
 and the standards. I wrote down in advance the rules for the structure
-of the literate program (unnamed code only in the skeleton of the first
-section; all functions collected in one section, \sect{\ko{함수들}}),
-rules for Korean sentences, and the standard for typesetting quality
-(zero warnings). Then I read the results and pointed out what to fix:
-that the index section of the original was missing, that letters in
-figures overlapped lines, and so on. It was also I who remembered the
-workaround in \GWEB\ and proposed fixing it in \GWEB. I also polished
-the wording of the Korean translation so that it reads more naturally.
+of the literate program, for Korean sentences, and for typesetting
+quality. Then I read the results and pointed out what to fix, mostly
+things that Claude had overlooked or gotten wrong. It was also I who
+found bugs and possible improvements in \GWEB\ along the way, fixed
+them, and applied the fixed features to the translation right away. I
+also polished the wording of the Korean translation so that it reads
+more naturally.
 Above all, I took pains over the Go code. I had the traces of Pascal
 removed and Go's conventions followed, so that it would look as if
 Knuth had written it in Go from the start. Making full use of Go's
@@ -590,9 +588,10 @@ Claude read the original and wrote the Korean prose and the Go code,
 drew the \MP\ figures, and wrote and ran test scripts. Claude was also
 the first to notice the error in \S587. When I read the passage,
 Claude did seem to be right. But a bug must be confirmed carefully, so
-I asked whether it was sure this was a typo. It cited the definitions
-in the paragraph and the code as evidence, and searched Knuth's errata
-and \acro{TUG}'s list to confirm that it had not yet been reported.
+Claude and I examined it together until I was sure it was an error.
+Claude cited the definitions in the paragraph and the code as
+evidence, and searched Knuth's errata and \acro{TUG}'s list to
+confirm that it had not yet been reported.
 When I reported it to tex-k, the person in charge agreed. Once again I
 was amazed at Claude's care and concentration.
 
@@ -601,7 +600,11 @@ What surprised me most in working with Claude was its speed. The work
 took far less time than I had expected: less than a week. Alone,
 understanding and translating the program would have taken me well
 over a year, and that only if I had kept at it steadily and
-persistently. Moreover, the careful and thorough testing done in that
+persistently. To begin with, English is a barrier for me. And to learn
+the algorithms and techniques of \MF\ one by one, I would have had to
+find the papers behind them and understand them, and to make them truly
+my own, write code that applies them. Claude actively helped me with
+all of that. Moreover, the careful and thorough testing done in that
 short time is something I could never have imagined doing alone.
 
 Working with Claude was one surprise after another. Sometimes it makes
@@ -662,7 +665,7 @@ feelings with a quiet ``thank you''.
 \def\s{\slash}
 \bib1 Dohyun Kim. luamplib. \url{github.com\s dohyunkim\s luamplib}
 \bib2 Dohyun Kim. \LuaTeX-ko. \url{github.com\s dohyunkim\s luatexko}
-\bib3 Donald E. Knuth. Adventure ({\tt advent.w}).
+\bib3 Donald E. Knuth. Adventure.\hfil\break
   \url{www-cs-faculty.stanford.edu\s \char`\~knuth\s programs\s
   advent.w.gz}
 \bib4 Donald E. Knuth. Literate programming.
