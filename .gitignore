@@ -18,6 +18,22 @@ mf-deco.pdf
 mf-deco.toc
 mf-deco.ref
 
+# make twill, make twill-deco: gtwill이 미니 색인을 붙인 판
+mf-twill.tex
+mf-twill.log
+mf-twill.pdf
+mf-twill.toc
+mf-twill.ref
+mf-twill.mref
+mf-twill.smref
+mf-twill-deco.tex
+mf-twill-deco.log
+mf-twill-deco.pdf
+mf-twill-deco.toc
+mf-twill-deco.ref
+mf-twill-deco.mref
+mf-twill-deco.smref
+
 .DS_Store
 
 # make trap: tests/trap.sh가 처음 돌 때 CTAN에서 받아 오는 크누스의 원본 파일들

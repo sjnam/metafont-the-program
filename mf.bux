@@ -1,0 +1,48 @@
+% mf.bux -- gtwill이 미니 색인을 만들 때 읽는 의미들(make twill)
+%
+% mf.w의 선언에서는 읽어 낼 수 없는 이름들에게 의미를 준다. 이런 이름은 산문이나
+% 주석에만 나오는 것이라, 의미가 없으면 미니 색인에 `???'로 나온다. 형식은 CTWILL의
+% .bux와 같다. 한 줄에 @$ 하나씩, `@$이름 위치 TeX파트@>'로 쓴다. 위치는 {\MF}절번호
+% (이 프로그램의 한 절)이거나 "문자열"(다른 프로그램이나 파일)이고, TeX파트가 \zip이면
+% 미니 색인에는 이름과 위치만 나온다. 줄이 %로 시작하면 주석이다.
+%
+% 절 번호가 붙은 것은 mf.w의 절이 늘거나 줄면 함께 고쳐야 한다. 번호가 맞는지는
+% `gtwill -P mf.w'로 짠 교정용 문서에서 확인하면 된다.
+
+% 원본 mf.web의 프로시저, 전역 변수, 매크로, 레이블. 이 판에서는 다른 꼴로 바뀌었다.
+@$again "mf.web" \zip@>
+@$commonEnding "mf.web" \zip@>
+@$continuePath "mf.web" \zip@>
+@$dual_moves "mf.web" \zip@>
+@$finishPath "mf.web" \zip@>
+@$g_pointer "mf.web" \zip@>
+@$startHere "mf.web" \zip@>
+@$tokenRecycle "mf.web" \zip@>
+@$unknownTypes "mf.web" \zip@>
+@$weFoundIt "mf.web" \zip@>
+
+% Pascal의 낱말
+@$eof "Pascal" \zip@>
+@$forward "Pascal" \zip@>
+@$get "Pascal" \zip@>
+@$repeat "Pascal" \zip@>
+@$then "Pascal" \zip@>
+
+% Go 라이브러리
+@$Seek "os" \zip@>
+
+% TFM 파일의 부분
+@$lf "TFM" \zip@>
+
+% 보기를 들거나 설명하려고 산문에서만 쓴 이름. 설명하는 절을 가리킨다.
+% 그 절에서만 나오는 이름은 이렇게 하면 미니 색인에서 빠진다.
+@$q1 {\MF}285 \zip@>
+@$q2 {\MF}285 \zip@>
+@$qq1 {\MF}285 \zip@>
+@$qq2 {\MF}285 \zip@>
+@$qqq {\MF}285 \zip@>
+@$qqq1 {\MF}285 \zip@>
+@$qqq2 {\MF}285 \zip@>
+@$screenPixel {\MF}651 \zip@>
+@$page {\MF}724 \zip@>
+@$pageStack {\MF}724 \zip@>
