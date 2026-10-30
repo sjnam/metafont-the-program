@@ -133,7 +133,7 @@ enddef;
 @:METAFONTbook}{\sl The {\logos METAFONT\/}book@>
 
 \par\vskip 0pt plus 1filll\noindent % gtwill이 왼쪽 쪽 끝에 덧붙이는 \vfill보다 차수가 높아야 사자가 바닥에 붙는다
-\saveimageresource height 1.5in {metalion.pdf}\useimageresource\lastsavedimageresourceindex
+\saveimageresource height 1.5in {lion.pdf}\useimageresource\lastsavedimageresourceindex
 @ 지금의 구현에는 꽤 긴 내력이 있다. 출발점은 1977년 봄, 저자가 첫 Computer Modern
 글꼴들을 만들려고 서브루틴과 매크로의 원형을 짠 일이었다.
 @^Knuth, Donald Ervin@>
