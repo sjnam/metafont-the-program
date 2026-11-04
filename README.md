@@ -18,6 +18,10 @@
   `pencircle`의 타원 복원, `subpath` 자르기, `doublepath`, TFM 치수 합치기(`skimp`), GF 부호화 따위다.
 - 같은 `mf.w`에서 사람이 읽을 문서(`mf.pdf`, 약 850쪽)와 실제로 돌아가는 프로그램(`build/mf`)이
   함께 나온다. 이 프로그램은 진짜 METAFONT와 같은 TFM과 GF를 만들고, 크누스의 TRAP 테스트를 통과한다.
+- 프로그램은 Go의 기능(고루틴, `unsafe`로 흉내 낸 공용체, 64비트 산술 따위)을 아낌없이 써서 빠르게
+  했다(`mf.w`의 2절). 알고리즘은 그대로이고, 출력은 원본을 충실히 옮긴 판(꼬리표 `faithful`)과 바이트까지
+  같다. 글꼴 열 개를 세 번씩 읽는 벤치마크가 1.26초에서 0.69초로 줄어, TeX Live의 `mf-nowin`(0.79초)보다
+  빠르다.
 
 ## 파일
 
@@ -30,8 +34,8 @@
 | `go.mod` | Go 모듈 정의 |
 | `tests/trap.sh` | TRAP 테스트 |
 | `tests/compare.sh` | 글꼴 몇 개를 진짜 METAFONT와 함께 만들어 TFM, GF, 기록 파일을 비교한다 |
-| `tests/regress.sh` | `main` 가지의 METAFONT와 출력이 바이트까지 같은지 본다(go-native 실험) |
-| `tests/fuzz/` | `main` 가지의 METAFONT와 견주는 차등 퍼징 |
+| `tests/regress.sh` | 원본을 충실히 옮긴 판(`faithful`)의 METAFONT와 출력이 바이트까지 같은지 본다 |
+| `tests/fuzz/` | `faithful` 판의 METAFONT와 견주는 차등 퍼징 |
 | `tests/pgo.sh` | 프로파일 기반 최적화에 쓰는 `default.pgo`를 만든다 |
 | `default.pgo` | `go build`가 읽는 CPU 프로파일 |
 | `tests/typeset-check.py` | `mf.pdf`에서 오류 없이 조용히 깨진 조판(악센트가 된 따옴표, 잘못 끊긴 수 따위)을 찾는다 |
@@ -118,8 +122,8 @@ make build      # 프로그램만: mf.w → mf.go(gtangle) → build/mf(go build
 make pdf        # 문서만: mf.w → mf.tex(gweave) → mf.pdf(luatex 두 번, qpdf로 차례를 맨 앞에)
 make check      # 조판 경고(Overfull, Underfull 따위)와 조용히 깨진 조판의 수를 센다. 둘 다 0이어야 한다
 make test       # make compare와 make trap(아래 테스트)을 함께 돌린다
-make regress    # main 가지의 METAFONT와 출력이 바이트까지 같은지 본다(아래 테스트)
-make fuzz       # main 가지의 METAFONT와 견주는 차등 퍼징(아래 테스트)
+make regress    # faithful 판의 METAFONT와 출력이 바이트까지 같은지 본다(아래 테스트)
+make fuzz       # faithful 판의 METAFONT와 견주는 차등 퍼징(아래 테스트)
 make pgo        # 프로파일 기반 최적화에 쓰는 default.pgo를 새로 만든다
 make install    # mf 명령이 이 METAFONT를 부르게 한다(아래)
 make deco       # 쪽마다 액자를 두른 판: mf.w + mf-deco.ch → mf-deco.pdf(mf.pdf는 그대로 둔다)
@@ -234,17 +238,18 @@ TRAP은 크누스가 METAFONT의 구현을 검증하려고 만든 "고문 테스
 `trap.typ`은 TeX Live의 `gftype`이 trapman이 말하는 ``보통''의 상수보다 큰 그림을 보이므로, 원본
 GF도 같은 `gftype`으로 풀어서 비교한다.
 
-### main 가지와 견주기
+### 원본을 충실히 옮긴 판과 견주기
 
 ```sh
 make regress                # make trap을 돌린 뒤 tests/regress.sh -t
 tests/regress.sh            # 시간은 재지 않는다
-BASE=v1 tests/regress.sh    # 다른 가지나 커밋과 견준다
+make regress BASE=main      # 다른 가지나 커밋과 견준다(tests/regress.sh라면 BASE=main tests/regress.sh)
 ```
 
-`go-native` 가지는 Go의 기능을 아낌없이 써서 이 프로그램을 빠르게 하는 실험이다(`mf.w`의 2절).
-조건은 출력이 한 바이트도 달라지지 않는 것이다. `tests/regress.sh`는 `main` 가지의 `mf.w`로 기준
-METAFONT를 따로 만들고, 두 프로그램으로 같은 작업을 돌려 남긴 파일을 모두 바이트 그대로 견준다.
+이 프로그램은 처음에 원본에 충실하게 옮긴 뒤, `go-native` 가지에서 Go의 기능을 아낌없이 써서 빠르게 하고
+본줄기에 합친 것이다(`mf.w`의 2절). 조건은 출력이 한 바이트도 달라지지 않는 것이고, 앞으로 고칠 때도
+그렇다. 합치기 전의 충실한 판에는 꼬리표 `faithful`을 붙여 두었다. `tests/regress.sh`는 그 커밋의 `mf.w`로
+기준 METAFONT를 따로 만들고, 두 프로그램으로 같은 작업을 돌려 남긴 파일을 모두 바이트 그대로 견준다.
 TRAP 테스트의 결과, plain 기반을 만들 때의 기록, 글꼴 열한 개를 200dpi와 600dpi로 만든 GF와
 TFM과 기록 파일, 글꼴 열 개를 한 작업에서 세 번씩 읽어 4007자를 만드는 벤치마크(`big`), 모든 추적을
 켠 작업, 입력 버퍼가 넘치는 작업, 오류 100개로 그만두는 작업이다. `-t`를 주면 걸린 시간도 견준다.
@@ -256,8 +261,9 @@ make fuzz                   # 1분 동안 (FUZZTIME=10m 따위로 바꿀 수 있
 go test ./tests/fuzz        # 씨앗 입력만
 ```
 
-`tests/fuzz`는 Go의 퍼징으로 METAFONT 입력을 만들어, `main` 가지의 `mf.w`로 만든 METAFONT(`build/ref/mf`)와
-이 가지의 METAFONT에 함께 넣는다. 그리고 터미널 출력과 남긴 파일(GF, TFM, 기록 파일)이 바이트까지 같은지
+`tests/fuzz`는 Go의 퍼징으로 METAFONT 입력을 만들어, `faithful` 판의 `mf.w`로 만든
+METAFONT(`build/ref-faithful/mf`)와 지금의 METAFONT에 함께 넣는다. `make fuzz BASE=main`처럼 기준을 바꿀
+수도 있다. 그리고 터미널 출력과 남긴 파일(GF, TFM, 기록 파일)이 바이트까지 같은지
 본다. METAFONT는 한 프로세스에서 되풀이해 돌릴 수 없으므로 입력마다 실행 파일을 띄운다. macOS에서는
 `sandbox-exec`로 가두어, 무작위 입력이 작업 디렉터리 밖에 파일을 쓰지 못하게 한다. 다른 결과가 나오면 그
 입력이 `tests/fuzz/testdata/fuzz/FuzzSame/`에 남는다.

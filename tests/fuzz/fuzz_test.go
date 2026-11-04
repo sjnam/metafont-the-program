@@ -1,10 +1,11 @@
-// 차등 퍼징: 같은 입력을 기준 METAFONT(main 가지의 mf.w로 만든 것)와 이 가지의 METAFONT로
-// 돌려, 남긴 파일(GF, TFM, 기록 파일)과 터미널 출력이 바이트까지 같은지 본다.
+// 차등 퍼징: 같은 입력을 기준 METAFONT(꼬리표 faithful, 곧 원본 mf.web을 충실히 옮긴 판의
+// mf.w로 만든 것)와 지금의 METAFONT로 돌려, 남긴 파일(GF, TFM, 기록 파일)과 터미널 출력이
+// 바이트까지 같은지 본다.
 //
 //	go test ./tests/fuzz                       씨앗 입력만 돌린다
 //	go test ./tests/fuzz -fuzz=FuzzSame -fuzztime=10m
 //
-// 실행 파일은 환경 변수 MFOURS와 MFREF로 줄 수 있다. 기본값은 build/mf와 build/ref/mf다
+// 실행 파일은 환경 변수 MFOURS와 MFREF로 줄 수 있다. 기본값은 build/mf와 build/ref-faithful/mf다
 // (make fuzz가 둘 다 만든다). METAFONT는 전역 상태 때문에 한 프로세스에서 되풀이해 돌릴 수
 // 없으므로 입력마다 실행 파일을 띄운다. METAFONT가 쓰는 파일은 작업 이름을 딴 것뿐이고 모두
 // 현재 디렉터리에 생기지만, macOS에서는 sandbox-exec로 가두어 임시 디렉터리 밖에 쓰지 못하게 한다.
@@ -72,7 +73,7 @@ var (
 func setup() {
 	root, _ := filepath.Abs("../..")
 	oursBin = envOr("MFOURS", filepath.Join(root, "build", "mf"))
-	refBin = envOr("MFREF", filepath.Join(root, "build", "ref", "mf"))
+	refBin = envOr("MFREF", filepath.Join(root, "build", "ref-faithful", "mf"))
 	for _, b := range []string{oursBin, refBin} {
 		if _, err := os.Stat(b); err != nil {
 			setupErr = fmt.Errorf("%s가 없다 (make fuzz가 만든다): %v", b, err)
@@ -225,7 +226,7 @@ func FuzzSame(f *testing.F) {
 			ours = runFor(t, 5*runTimeout, oursBin, oursBase, doc)
 		}
 		if ref.timedOut || ours.timedOut {
-			t.Fatalf("한쪽만 시간 안에 끝났다 (기준 %v, 이 가지 %v)", !ref.timedOut, !ours.timedOut)
+			t.Fatalf("한쪽만 시간 안에 끝났다 (기준 %v, 지금 %v)", !ref.timedOut, !ours.timedOut)
 		}
 		compare(t, ref, ours)
 	})

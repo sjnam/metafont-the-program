@@ -1,10 +1,12 @@
 #!/bin/sh
-# 이 가지의 METAFONT(build/mf)가 기준 가지(기본값 main)의 METAFONT와 똑같은 결과를 내는지 본다.
-# go-native 실험에서는 무엇을 고치든 출력이 한 바이트도 달라져서는 안 되므로,
-# TeX Live의 mf-nowin이 아니라 고치기 전의 이 프로그램과 견준다.
+# 지금의 METAFONT(build/mf)가 기준 판의 METAFONT와 똑같은 결과를 내는지 본다. 기준은 BASE로
+# 정하는 커밋이고, 기본값은 꼬리표 faithful, 곧 원본 mf.web을 충실히 옮긴 판(go-native를 합치기
+# 전)이다. 빠르게 하려고 무엇을 고치든 출력이 한 바이트도 달라져서는 안 되므로, TeX Live의
+# mf-nowin이 아니라 고치기 전의 이 프로그램과 견준다.
 #
 #   tests/regress.sh            요약만 찍는다
 #   tests/regress.sh -t         같은 작업을 여러 번 돌려 걸린 시간도 견준다
+#   BASE=main tests/regress.sh  다른 커밋이나 가지와 견준다
 #
 # 견주는 것:
 #   - TRAP 테스트가 남기는 파일 일곱 개 (tests/trap.sh가 만든 build/trap과)
@@ -22,14 +24,14 @@ set -e
 
 TOP=$(cd "$(dirname "$0")/.." && pwd)
 timing=0; [ "$1" = "-t" ] && timing=1
-BASE=${BASE:-main}
+BASE=${BASE:-faithful}
 W=$TOP/build/regress
 OURS=$TOP/build/mf
 REF=$W/ref/mf
 FONTS="cmr10 cmbx12 cmti10 cmmi10 cmsy10 cmex10 cmtt10 cmss10 cmcsc10 cmfib8 logo10"
 TRAPFILES="trapin.log trapin.fot trap.log trap.fot trap.typ trap.pl trap.72270gf"
 
-# 1. 기준 가지의 mf.w로 기준 METAFONT와 기준 TRAP 결과를 만든다
+# 1. 기준 판의 mf.w로 기준 METAFONT와 기준 TRAP 결과를 만든다
 rm -rf "$W"; mkdir -p "$W/ref/tests"
 git -C "$TOP" show "$BASE:mf.w" > "$W/ref/mf.w"
 git -C "$TOP" show "$BASE:tests/trap.sh" > "$W/ref/tests/trap.sh"; chmod +x "$W/ref/tests/trap.sh"
@@ -43,7 +45,7 @@ same() { # $1: 이름, $2 $3: 견줄 두 파일
   else printf '  %-28s 다르다\n' "$1"; bad=1; diff "$2" "$3" 2>/dev/null | head -10 | sed 's/^/      /'; fi
 }
 
-echo "$BASE 가지의 METAFONT와 견준다"
+echo "$BASE 판의 METAFONT와 견준다"
 for f in $TRAPFILES; do
   same "TRAP $f" "$W/ref/build/trap/$f" "$TOP/build/trap/$f"
 done
@@ -96,7 +98,7 @@ grep -q '다르다' "$W/report" && bad=1
 
 # 4. 원하면 걸린 시간을 견준다(다섯 번 가운데 가장 짧은 것)
 if [ "$timing" = 1 ]; then
-  echo "걸린 시간(초, 다섯 번 가운데 가장 짧은 것): 기준 / 이 가지"
+  echo "걸린 시간(초, 다섯 번 가운데 가장 짧은 것): 기준 / 지금"
   for job in ini cmr10-600 cmr10-2000 trace big; do
     for who in ref ours; do
       mf=$REF; [ $who = ours ] && mf=$OURS

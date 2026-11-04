@@ -8,9 +8,9 @@
 #   make compare    글꼴 몇 개를 진짜 METAFONT(mf-nowin)로 만든 것과 비교한다
 #   make trap       크누스의 TRAP 테스트를 돌린다
 #   make test       compare와 trap을 모두 돌린다
-#   make regress    main 가지의 METAFONT와 출력이 바이트까지 같은지 본다(trap을 먼저 돌린다)
+#   make regress    기준 판(BASE, 기본 faithful)의 METAFONT와 출력이 바이트까지 같은지 본다(trap을 먼저 돌린다)
 #   make pgo        프로파일 기반 최적화에 쓸 default.pgo를 새로 만든다(리눅스가 아니면 docker)
-#   make fuzz       main 가지의 METAFONT와 출력을 견주는 차등 퍼징을 FUZZTIME(기본 1m) 동안 돌린다
+#   make fuzz       기준 판의 METAFONT와 출력을 견주는 차등 퍼징을 FUZZTIME(기본 1m) 동안 돌린다
 #   make install    mf 명령이 이 METAFONT를 부르게 한다(PREFIX, 기본 ~/.local)
 #   make uninstall  make install로 설치한 것을 지운다
 #   make clean      만든 것을 모두 지운다
@@ -78,22 +78,29 @@ trap:
 
 test: compare trap
 
+# make regress와 make fuzz가 견줄 기준 판. 꼬리표 faithful은 원본 mf.web을 충실히 옮긴 판,
+# 곧 go-native를 합치기 전의 커밋이다. 다른 커밋이나 가지와 견주려면 BASE=main처럼 준다.
+BASE = faithful
+
 regress: $(BUILD)/mf trap
-	tests/regress.sh -t
+	BASE=$(BASE) tests/regress.sh -t
 
 pgo: mf.go
 	tests/pgo.sh
 
-# 차등 퍼징의 기준: main 가지의 mf.w로 만든 METAFONT
-$(BUILD)/ref/mf: .git/refs/heads/main
-	@mkdir -p $(BUILD)/ref
-	git show main:mf.w > $(BUILD)/ref/mf.w
-	cp go.mod $(BUILD)/ref/
-	cd $(BUILD)/ref && gtangle mf.w >/dev/null && go build -o mf .
+# 차등 퍼징의 기준: 기준 판의 mf.w로 만든 METAFONT. 기준마다 디렉터리를 따로 두므로 BASE를
+# 바꾸면 새로 만든다. 가지 이름을 주었다면 그 가지가 움직여도 저절로 다시 만들지는 않으니
+# build/ref-가지이름을 지운다.
+REF = $(BUILD)/ref-$(BASE)
+$(REF)/mf:
+	@mkdir -p $(REF)
+	git show $(BASE):mf.w > $(REF)/mf.w
+	cp go.mod $(REF)/
+	cd $(REF) && gtangle mf.w >/dev/null && go build -o mf .
 
 FUZZTIME = 1m
-fuzz: $(BUILD)/mf $(BUILD)/ref/mf
-	go test ./tests/fuzz -run=FuzzSame -fuzz=FuzzSame -fuzztime=$(FUZZTIME)
+fuzz: $(BUILD)/mf $(REF)/mf
+	MFREF=$(CURDIR)/$(REF)/mf go test ./tests/fuzz -run=FuzzSame -fuzz=FuzzSame -fuzztime=$(FUZZTIME)
 
 # 실행 파일과 그것으로 만든 plain 기반은 $(MFDIR)에 두고, $(BINDIR)/mf에는 MFBASES를
 # $(MFDIR)로 놓고 그 실행 파일을 부르는 작은 스크립트를 둔다. MFBASES는 TeX Live의
