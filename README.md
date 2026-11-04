@@ -30,6 +30,7 @@
 | `go.mod` | Go 모듈 정의 |
 | `tests/trap.sh` | TRAP 테스트 |
 | `tests/compare.sh` | 글꼴 몇 개를 진짜 METAFONT와 함께 만들어 TFM, GF, 기록 파일을 비교한다 |
+| `tests/regress.sh` | `main` 가지의 METAFONT와 출력이 바이트까지 같은지 본다(go-native 실험) |
 | `tests/typeset-check.py` | `mf.pdf`에서 오류 없이 조용히 깨진 조판(악센트가 된 따옴표, 잘못 끊긴 수 따위)을 찾는다 |
 | `orig/mf.web` | 옮긴 원본(CTAN의 2.71828182) |
 | `orig/names.tsv` | 원본의 영어 이름과 한글 이름의 대응표(부 제목 52개와 이름 있는 절 500여 개) |
@@ -112,6 +113,7 @@ make build      # 프로그램만: mf.w → mf.go(gtangle) → build/mf(go build
 make pdf        # 문서만: mf.w → mf.tex(gweave) → mf.pdf(luatex 두 번, qpdf로 차례를 맨 앞에)
 make check      # 조판 경고(Overfull, Underfull 따위)와 조용히 깨진 조판의 수를 센다. 둘 다 0이어야 한다
 make test       # make compare와 make trap(아래 테스트)을 함께 돌린다
+make regress    # main 가지의 METAFONT와 출력이 바이트까지 같은지 본다(아래 테스트)
 make deco       # 쪽마다 액자를 두른 판: mf.w + mf-deco.ch → mf-deco.pdf(mf.pdf는 그대로 둔다)
 make clean
 ```
@@ -137,10 +139,14 @@ cd build
 파일은 다음과 같이 찾는다.
 
 - **입력 파일**: 먼저 현재 디렉터리에서 찾는다. 없으면 환경 변수 `MFINPUTS`의 디렉터리들에서 찾는다.
-  그래도 없으면 처음 한 번 `kpsewhich -show-path=mf`가 알려 주는 입력 디렉터리들(맨 앞이 현재
-  디렉터리)을 훑어 만든 표에서 찾는다. 파일마다 `kpsewhich`를 부르면 한 번에 0.1초쯤 들어 `cmr10`
-  하나에 1.4초가 걸리던 것이 0.18초로 줄었다(TeX Live의 `mf-nowin`은 0.13초). 표에도 없으면
-  `kpsewhich`에게 묻는다.
+  그래도 없으면 배포판의 파일 색인에서 찾는다.
+- **배포판의 파일 색인**: METAFONT는 시작하자마자 고루틴을 띄워, `kpsewhich`에게서 `mf`의 검색 경로를
+  받고 배포판의 파일 목록 데이터베이스(`ls-R`)를 여러 고루틴으로 나누어 읽는다. 그동안 METAFONT는
+  기반을 읽고 일을 시작한다. 같은 이름이 검색 경로의 한 원소 안에 여럿 있거나 이름을 찾지 못하면
+  그 이름만 `kpsewhich`에게 직접 묻는다. 그러니 고르는 파일은 늘 `kpsewhich`와 같다. 파일마다
+  `kpsewhich`를 부르면 한 번에 0.1초쯤 드는데(그때마다 `ls-R`을 처음부터 읽는다), 이렇게 바꾸고
+  나서 plain 기반을 만드는 데 0.11초 걸리던 것이 0.01초로, `cmr10`을 600dpi로 만드는 데 0.15초
+  걸리던 것이 0.05초로 줄었다(TeX Live의 `mf-nowin`은 0.13초).
 - **기반 파일**: `&plain`은 먼저 현재 디렉터리의 `plain.base`를 찾고, 없으면 `MFBASES`의 디렉터리들에서 찾는다.
   기반 파일의 형식은 이 프로그램의 것이어서 TeX Live의 `.base`와는 바꾸어 쓸 수 없다.
 - **경로**: 원본은 `>`와 `:`로만 디렉터리를 가르지만, 이 번역은 `/`도 디렉터리 구분자로 알아본다.
@@ -197,6 +203,21 @@ TRAP은 크누스가 METAFONT의 구현을 검증하려고 만든 "고문 테스
 
 `trap.typ`은 TeX Live의 `gftype`이 trapman이 말하는 ``보통''의 상수보다 큰 그림을 보이므로, 원본
 GF도 같은 `gftype`으로 풀어서 비교한다.
+
+### main 가지와 견주기
+
+```sh
+make regress                # make trap을 돌린 뒤 tests/regress.sh -t
+tests/regress.sh            # 시간은 재지 않는다
+BASE=v1 tests/regress.sh    # 다른 가지나 커밋과 견준다
+```
+
+`go-native` 가지는 Go의 기능을 아낌없이 써서 이 프로그램을 빠르게 하는 실험이다(`mf.w`의 2절).
+조건은 출력이 한 바이트도 달라지지 않는 것이다. `tests/regress.sh`는 `main` 가지의 `mf.w`로 기준
+METAFONT를 따로 만들고, 두 프로그램으로 같은 작업을 돌려 남긴 파일을 모두 바이트 그대로 견준다.
+TRAP 테스트의 결과, plain 기반을 만들 때의 기록, 글꼴 열한 개를 200dpi와 600dpi로 만든 GF와
+TFM과 기록 파일, 글꼴 열 개를 한 작업에서 세 번씩 읽어 4007자를 만드는 벤치마크(`big`), 모든 추적을
+켠 작업, 입력 버퍼가 넘치는 작업, 오류 100개로 그만두는 작업이다. `-t`를 주면 걸린 시간도 견준다.
 
 ## 저작권과 이름
 

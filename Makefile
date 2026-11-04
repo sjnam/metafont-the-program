@@ -8,6 +8,7 @@
 #   make compare    글꼴 몇 개를 진짜 METAFONT(mf-nowin)로 만든 것과 비교한다
 #   make trap       크누스의 TRAP 테스트를 돌린다
 #   make test       compare와 trap을 모두 돌린다
+#   make regress    main 가지의 METAFONT와 출력이 바이트까지 같은지 본다(trap을 먼저 돌린다)
 #   make clean      만든 것을 모두 지운다
 #   make deco       테두리에 액자를 두른 문서(mf-deco.pdf)를 만든다
 #   make twill      쪽마다 미니 색인을 붙인 문서(mf-twill.pdf)를 gtwill로 만든다
@@ -15,7 +16,7 @@
 
 BUILD = build
 
-.PHONY: all build pdf check base compare trap test clean deco twill twill-deco
+.PHONY: all build pdf check base compare trap test regress clean deco twill twill-deco
 
 all: build pdf
 
@@ -71,6 +72,9 @@ trap:
 	tests/trap.sh
 
 test: compare trap
+
+regress: $(BUILD)/mf trap
+	tests/regress.sh -t
 
 # 액자를 두른 판은 mf-deco.pdf로 따로 만들어 mf.pdf를 건드리지 않는다
 mf-deco.pdf: mf.w mf-deco.ch decoframe.pdf
