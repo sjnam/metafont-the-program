@@ -30,19 +30,24 @@
 
 % Go 라이브러리
 @$Seek "os" \zip@>
+@$ReadByte "bufio" \zip@>
+@$ReadSlice "bufio" \zip@>
+@$WriteByte "bufio" \zip@>
 
 % TFM 파일의 부분
 @$lf "TFM" \zip@>
 
 % 보기를 들거나 설명하려고 산문에서만 쓴 이름. 설명하는 절을 가리킨다.
 % 그 절에서만 나오는 이름은 이렇게 하면 미니 색인에서 빠진다.
-@$q1 {\MF}285 \zip@>
-@$q2 {\MF}285 \zip@>
-@$qq1 {\MF}285 \zip@>
-@$qq2 {\MF}285 \zip@>
-@$qqq {\MF}285 \zip@>
-@$qqq1 {\MF}285 \zip@>
-@$qqq2 {\MF}285 \zip@>
-@$screenPixel {\MF}651 \zip@>
-@$page {\MF}724 \zip@>
-@$pageStack {\MF}724 \zip@>
+@$q1 {\MF}305 \zip@>
+@$q2 {\MF}305 \zip@>
+@$qq1 {\MF}305 \zip@>
+@$qq2 {\MF}305 \zip@>
+@$qqq {\MF}305 \zip@>
+@$qqq1 {\MF}305 \zip@>
+@$qqq2 {\MF}305 \zip@>
+@$left {\MF}351 \zip@>
+@$right {\MF}351 \zip@>
+@$screenPixel {\MF}677 \zip@>
+@$page {\MF}750 \zip@>
+@$pageStack {\MF}750 \zip@>

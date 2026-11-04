@@ -3282,7 +3282,7 @@ if q < fractionFour {
 (i)에서 $k=0$이 되어 |q+p|가 정확히 $\lfloor qf_0/2^{28}+{1\over2}\rfloor$다. 여기서 $f_0$은
 보초 비트까지 붙은 |f|다. 그러니 반복 대신
 $$p=\biggl\lfloor{qf+2^{27}\over2^{28}}\biggr\rfloor-q$$
-를 64비트 곱셈 한 번과 자리 옮김 한 번으로 구하면 된다(\secref{fast-fraction}). 곱 |qf|는
+를 64비트 곱셈 한 번과 자리 옮김 한 번으로 구하면 된다(\secref{fast-fraction}). 곱 $qf$는
 $2^{31}\cdot2^{29}=2^{60}$보다 작아 넘치지 않는다. 자리를 옮긴 값은 $2q$에 가까워 |int32|를
 넘을 수 있으므로, |q|를 빼고 나서 |int32|로 바꾼다. 앞 절과 마찬가지로 $-2^{31}$에서 부호를 떼지
 못하면 반복이 그대로 일한다. |f|가 그렇게 남으면 반복은 끝나지 않는데, 원래의 \MF도 그렇다.
@@ -27543,7 +27543,7 @@ func doShowVar() {
 }
 
 @ \KW{showdependencies}는 지금의 모든 종속 관계를 보인다. 함수 |interesting|으로 걸러 내므로 캡슐
-같은 것은 |tracingcapsules|가 양수일 때만 나타난다. 원형 종속은 `\.{ = }'처럼 등호 둘레에 빈칸을 더 두어 구별한다.
+같은 것은 |tracingCapsules|가 양수일 때만 나타난다. 원형 종속은 `\.{ = }'처럼 등호 둘레에 빈칸을 더 두어 구별한다.
 
 @<함수들@>=
 func doShowDependencies() {
