@@ -83,7 +83,9 @@
 - METAFONT의 정수형(`halfword`, `scaled`, `fraction`, `pointer` 따위)은 모두 `int32`의 별칭이다.
   Go의 정수 나눗셈은 0 쪽으로 자르므로 원본의 `div`·`mod`와 같다.
 - 원본의 필드 매크로 `link(p)`는 함수 `link(p)`와 `setLink(p, v)`의 짝이 된다.
-- 변형 레코드 `memory_word`는 필드가 따로따로인 구조체가 된다.
+- 변형 레코드 `memory_word`는 모든 변형을 8바이트에 겹쳐 놓은 구조체다. Go에는 공용체가 없으므로
+  `unsafe`로 흉내 낸다. 진짜 필드는 `x.sc` 하나이고, 나머지는 `x.hh().rh`, `x.qqqq().b0()`처럼
+  메서드로 꺼낸다.
 - `init…tini`는 `if iniVersion {…}`, `stat…tats`는 `if stat {…}`, `debug…gubed`는 `if debug {…}`이다.
 - `goto`는 되도록 `break`, `continue`, 레이블 붙은 반복문, `if`–`else`로 바꾸었다. 그렇게 바꾼 곳마다
   설명에 원본의 레이블이 어떻게 되었는지 적었다. 프로시저 바깥으로 가는 `goto endOfMF`나 `goto finalEnd`는

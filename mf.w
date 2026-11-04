@@ -153,6 +153,10 @@ enddef;
 \item{$\bullet$} 배포판에서 파일을 찾는 색인을 고루틴들이 만든다(\secref{external-name}). 그
 덕분에 plain 기반을 만드는 데 0.11초 걸리던 것이 0.01초로, \.{cmr10}을 600dpi로 만드는 데
 0.15초 걸리던 것이 0.05초로 줄었다. 같은 기계에서 \TeX\ Live의 \.{mf-nowin}은 0.13초다.
+\item{$\bullet$} 낱말 |memoryWord|의 변형들을 |unsafe|로 8바이트 하나에 겹쳐 놓고(\secref{memory-word}),
+필드 함수들이 배열 |mem|의 첨자를 |memMask|로 가려 컴파일러가 경계 검사를 빼게 한다(\secref{mem-array}).
+낱말이 36바이트에서 8바이트로 줄어 캐시에 잘 들어맞게 되었다. 벤치마크가 1.14초에서 1.05초로 줄었고,
+plain 기반 파일은 299킬로바이트에서 66킬로바이트가 되었다.
 \smallskip\noindent
 결과가 정말 같은지는 \.{tests/regress.sh}로 확인한다. 이 스크립트는 \.{main} 가지의 \.{mf.w}로
 기준 프로그램을 따로 만들어, 두 프로그램의 출력을 바이트 단위로 견준다. 견주는 작업에는 글꼴
@@ -269,8 +273,10 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"runtime/pprof"
 	"strings"
 	"sync"
+	"unsafe"
 )
 
 @<전역 레이블@>
@@ -4362,12 +4368,13 @@ func normRand() scaled {
 변수 |x|의 형이 |memoryWord|라면, |x|에는 다음과 같이 부를 수 있는 필드가 넷까지 들어 있다.
 $$\vbox{\halign{\hfil#&#\hfil&#\hfil\cr
 |x|&.|sc|\qquad&(정수 하나, 또는 |scaled| 정수 하나)\cr
-|x.hh.lh|, |x.hh|&.|rh|&(하프워드 필드 둘)\cr
-|x.hh.b0|, |x.hh.b1|, |x.hh|&.|rh|&(쿼터워드 필드 둘, 하프워드 필드 하나)\cr
-|x.qqqq.b0|, |x.qqqq.b1|, |x.qqqq|&.|b2|, |x.qqqq.b3|\hskip-100pt
+|x.hh().lh|, |x.hh()|&.|rh|&(하프워드 필드 둘)\cr
+|x.hh().b0()|, |x.hh().b1()|, |x.hh()|&.|rh|&(쿼터워드 필드 둘, 하프워드 필드 하나)\cr
+|x.qqqq().b0()|, |x.qqqq().b1()|, |x.qqqq()|&.|b2()|, |x.qqqq().b3()|\hskip-100pt
   &\qquad\qquad\qquad(쿼터워드 필드 넷)\cr}}$$
+괄호가 붙은 것은 필드가 아니라 메서드다. 그 까닭은 \secref{memory-word}에서 설명한다.
 이렇게 쓰면 손이 좀 많이 가고 읽기에도 그리 좋지 않다. 그래서 필드를 읽고 쓰는 짧은 함수들을
-따로 두어 표기를 짧고 알기 쉽게 만들 것이다. 이를테면 |mem[p].hh.rh| 대신 |link(p)|라고 쓴다.
+따로 두어 표기를 짧고 알기 쉽게 만들 것이다. 이를테면 |mem[p].hh().rh| 대신 |link(p)|라고 쓴다.
 아래의 \GO/ 코드는 |memoryWord|와 그 아래 형들을 정식으로 정의한다. \MF는 낱말 안에서 필드들이
 어떤 순서로 놓이는지에 대해 아무것도 가정하지 않는다.
 
@@ -4377,9 +4384,9 @@ $$\vbox{\halign{\hfil#&#\hfil&#\hfil\cr
 할 수 있을지도 모른다.
 
 주의할 점이 있다. |memoryWord|의 모든 변형을 정수 하나의 공간에 꾸려 넣지 않으면 귀중한 메모리가
-끔찍하게 낭비된다. 그런데 \GO/에는 여러 변형을 한 공간에 겹쳐 놓는 가변 레코드가 없으므로,
-여기서는 |memoryWord|를 모든 변형을 따로 담는 구조체로 정의한다(\secref{memory-word}). 그래서 낱말
-하나가 차지하는 메모리는 몇 배로 늘어나지만, 요즘 컴퓨터에서는 견딜 만하다.
+끔찍하게 낭비된다. \GO/에는 여러 변형을 한 공간에 겹쳐 놓는 가변 레코드가 없지만, |unsafe| 꾸러미를
+쓰면 흉내 낼 수 있다(\secref{memory-word}). 다만 하프워드를 32비트로 넓혔으므로(\secref{max-halfword})
+낱말 하나는 정수 둘 크기인 8바이트가 된다.
 
 지금의 구현은 가정을 거의 하지 않는다. `|minQuarterword .. maxQuarterword|' 범위의 정수를
 쿼터워드에 넣을 수 있고, `|minHalfword .. maxHalfword|' 범위의 정수를 하프워드에 넣을 수 있기만
@@ -4456,11 +4463,24 @@ func qi(x int32) quarterword { return x + minQuarterword } // 쿼터워드에 8�
 자료 구조가 이 위에 서 있기 때문이다.
 @^system dependencies@>
 
-정수 자료와 |scaled| 자료는 같은 필드 |sc|에 들어간다. \GO/에는 가변 레코드(C의 공용체)가
-없으므로 |memoryWord|는 모든 변형을 따로 담는 구조체이고, 하프워드 필드 |lh|와 쿼터워드
-필드 |b0|, |b1|도 따로 있다. 그래도 \MF는 한 낱말에 어떤 변형으로 쓴 값을 다른 변형으로 읽는
-일이 없으므로, 필드가 겹치든 겹치지 않든 동작은 같다. 쿼터워드와 하프워드는 |asciiCode|처럼
-|int32|의 별칭이다(\secref{ascii-code}).
+정수 자료와 |scaled| 자료는 같은 필드 |sc|에 들어간다. \GO/에는 가변 레코드(C의 공용체)가 없다.
+그래서 이 번역은 처음에 |memoryWord|를 변형마다 자리를 따로 둔 구조체로 정의했다. 정수 하나와
+하프워드 둘, 쿼터워드 여섯이 저마다 자리를 차지하니 낱말 하나가 36바이트나 되었다. 원본이 걱정한
+바로 그 낭비다. 지금은 |unsafe| 꾸러미로 공용체를 흉내 내어 모든 변형을 8바이트 하나에 겹쳐
+놓는다(2026년 11월 5일). 그래서 큰 배열 |mem|이 36메가바이트에서 8메가바이트로 줄었다.
+
+앞의 4바이트는 하프워드 |rh|의 자리다. 뒤의 4바이트는 하프워드 |lh|와 정수 |sc|가 함께 쓰고,
+쿼터워드 |b0|, |b1|, |b2|, |b3|은 그 4바이트를 한 바이트씩 나누어 쓴다. 그러니 |sc|나 쿼터워드에
+무엇을 쓰든 |rh|, 곧 |link| 필드는 다치지 않는다. \MF는 필드의 자리를 아무것도 가정하지
+않으므로 꼭 이렇게 놓아야 하는 것은 아니다. 쿼터워드가 한 바이트이므로 |maxQuarterword|는 255를
+넘을 수 없는데, \MF는 처음부터 그 값을 쓴다(\secref{max-halfword}).
+
+구조체의 진짜 필드는 |sc| 하나뿐이고, 나머지 변형은 메서드로 꺼낸다(다음 절). |x.hh()|와
+|x.qqqq()|는 낱말 |x|를 저마다 |twoHalves|와 |fourQuarters|로 본 포인터를 돌려준다. 그래서
+|mem[p].hh().rh=q|처럼 그 자리에 바로 쓸 수 있다. 쿼터워드는 |q.b0()|처럼 읽고 |q.setB0(v)|처럼
+쓴다. 바이트에 담긴 값을 |quarterword|, 곧 |int32|로 넓혀 돌려주므로, 부르는 쪽에서는 쿼터워드가
+바이트라는 것을 몰라도 된다. 쿼터워드와 하프워드는 |asciiCode|처럼 |int32|의
+별칭이다(\secref{ascii-code}).
 
 낱말 파일에는 현재 원소를 담는 필드 |buf|를 둔다. 그러면 다음 원소를 읽어 오기 전에도 현재
 원소를 언제든 들여다볼 수 있다. \PASCAL\ 파일의 ``버퍼 변수''를 흉내 낸 것으로, 기반 파일을
@@ -4471,20 +4491,12 @@ type @!quarterword = int32 // 낱말의 1/4; |minQuarterword .. maxQuarterword|
 type @!halfword = int32 // 낱말의 1/2; |minHalfword .. maxHalfword|
 type @!twoHalves struct {
 	@!rh halfword
-	@!lh halfword // 이 필드와 다음 두 필드는 겹쳐 놓아도 된다
-	@!b0 quarterword
-	@!b1 quarterword
+	@!lh halfword // 쿼터워드 |b0|와 |b1|은 이 자리의 첫 두 바이트다
 }
-type @!fourQuarters struct {
-	b0 quarterword
-	b1 quarterword
-	@!b2 quarterword
-	@!b3 quarterword
-}
+type @!fourQuarters [4]uint8 // 쿼터워드 |b0|, |b1|, |b2|, |b3|
 type @!memoryWord struct {
-	@!sc int32 // 정수나 |scaled| 값
-	@!hh twoHalves
-	@!qqqq fourQuarters
+	_ halfword // |hh().rh|의 자리
+	@!sc int32 // 정수나 |scaled| 값, |hh().lh|와 같은 자리
 }
 type @!wordFile struct {
 	f     *os.File
@@ -4493,6 +4505,30 @@ type @!wordFile struct {
 	buf   memoryWord // 파일의 현재 원소
 	atEOF bool       // 파일의 끝에 이르렀는가?
 }
+
+@ 낱말의 변형을 꺼내는 메서드들이다. 어떤 포인터를 다른 형의 포인터로 바꾸려면 |unsafe.Pointer|를
+거쳐야 한다. 메서드들이 아주 짧아서 컴파일러가 모두 인라인하므로, 결국 메모리를 한 번 읽거나
+쓰는 명령 하나가 된다. 하프워드 짝의 쿼터워드 |b0|와 |b1|은 |lh|의 자리를 |fourQuarters|로 보고
+그 앞의 두 바이트를 쓴다. 그러니 낱말 |x|에서 |x.hh().b0()|와 |x.qqqq().b0()|는 같은 바이트다.
+
+@<정의@>=
+func (w *memoryWord) @!hh() *twoHalves { return (*twoHalves)(unsafe.Pointer(w)) }
+func (w *memoryWord) @!qqqq() *fourQuarters { return (*fourQuarters)(unsafe.Pointer(&w.sc)) }
+
+func (h *twoHalves) quarters() *fourQuarters { return (*fourQuarters)(unsafe.Pointer(&h.lh)) }
+func (h *twoHalves) @!b0() quarterword { return h.quarters().b0() }
+func (h *twoHalves) @!b1() quarterword { return h.quarters().b1() }
+func (h *twoHalves) setB0(v quarterword) { h.quarters().setB0(v) }
+func (h *twoHalves) setB1(v quarterword) { h.quarters().setB1(v) }
+
+func (q fourQuarters) b0() quarterword { return quarterword(q[0]) }
+func (q fourQuarters) b1() quarterword { return quarterword(q[1]) }
+func (q fourQuarters) @!b2() quarterword { return quarterword(q[2]) }
+func (q fourQuarters) @!b3() quarterword { return quarterword(q[3]) }
+func (q *fourQuarters) setB0(v quarterword) { q[0] = uint8(v) }
+func (q *fourQuarters) setB1(v quarterword) { q[1] = uint8(v) }
+func (q *fourQuarters) setB2(v quarterword) { q[2] = uint8(v) }
+func (q *fourQuarters) setB3(v quarterword) { q[3] = uint8(v) }
 
 @ 디버깅할 때는 어떤 형인지 모르는 |memoryWord|를 찍어 보고 싶을 때가 있다. 그래서 가능한
 모든 방식으로 찍는다. 첫째 줄의 둘째 수는 |sc| 필드를 |scaled|로 읽은 것이고, 셋째 수는
@@ -4509,21 +4545,21 @@ func printWord(w memoryWord) { // |w|를 모든 방식으로 찍는다
 	printChar(' ')
 	printScaled(w.sc / 0o10000)
 	printLn()
-	printInt(w.hh.lh)
+	printInt(w.hh().lh)
 	printChar('=')
-	printInt(w.hh.b0)
+	printInt(w.hh().b0())
 	printChar(':')
-	printInt(w.hh.b1)
+	printInt(w.hh().b1())
 	printChar(';')
-	printInt(w.hh.rh)
+	printInt(w.hh().rh)
 	printChar(' ')
-	printInt(w.qqqq.b0)
+	printInt(w.qqqq().b0())
 	printChar(':')
-	printInt(w.qqqq.b1)
+	printInt(w.qqqq().b1())
 	printChar(':')
-	printInt(w.qqqq.b2)
+	printInt(w.qqqq().b2())
 	printChar(':')
-	printInt(w.qqqq.b3)
+	printInt(w.qqqq().b3())
 }
 
 @* 동적 메모리 할당.
@@ -4584,11 +4620,26 @@ label.top(btex \ID{memTop} etex, (xt,h+4pt));
 endfig;
 \endmplibcode$$
 
-배열 |mem|에서 실제로 쓰는 첨자는 |memMin .. memMax|다. \GO/의 배열은 첨자가 0부터
-시작하는데, 여기서는 |memMin=0|이므로 첨자를 그대로 쓸 수 있다.
+@ \seclabel{mem-array}배열 |mem|에서 실제로 쓰는 첨자는 |memMin .. memMax|다. \GO/의 배열은 첨자가
+0부터 시작하는데, 여기서는 |memMin=0|이므로 첨자를 그대로 쓸 수 있다.
+
+그런데 배열의 크기는 |memMax+1|이 아니라 |memMask+1|, 곧 $2^{20}$이다. \GO/는 배열을 읽을
+때마다 첨자가 범위 안에 있는지 검사하는데, |link|나 |value| 같은 필드 함수는 \MF의 안쪽 루프에서
+쉴 새 없이 불리므로 이 검사도 무시하지 못할 만큼 쌓인다. 크기가 2의 거듭제곱인 배열의 첨자를
+`|p&memMask|'처럼 그 크기에서 1을 뺀 값으로 가리면, 컴파일러는 첨자가 범위를 벗어날 수 없음을
+알고 검사를 빼 버린다. 쓰는 첨자는 |memMax|를 넘지 않으니, 이렇게 가려도 첨자는 조금도 바뀌지
+않는다. \TeX에서는 하프워드의 가장 큰 값으로 가렸지만, \MF의 하프워드는 $2^{28}-1$까지
+가므로(\secref{max-halfword}) 그렇게 하면 배열이 2기가바이트가 된다. 그래서 |memMax|를 덮는 가장
+작은 2의 거듭제곱을 따로 정해 둔다. 누가 |memMax|를 키우다가 |memMask|를 넘기면 둘째 상수의 값이
+음수가 되어 컴파일러가 알려 준다. 늘어난 배열의 뒷부분은 손대지 않으므로 운영체제가 실제
+메모리를 내주지도 않는다.
+@^inner loop@>
 
 @<전역 변수@>=
-var @!mem [memMax + 1]memoryWord // 큰 동적 저장 영역
+const @!memMask = 1<<20 - 1 // |mem|의 첨자를 가리는 값, $2^{20}-1$
+const _ uint = memMask - memMax // |memMax>memMask|이면 컴파일되지 않는다
+
+var @!mem [memMask + 1]memoryWord // 큰 동적 저장 영역
 var @!loMemMax pointer // 쓰고 있는 가변 크기 메모리의 가장 큰 위치
 var @!hiMemMin pointer // 쓰고 있는 한 낱말짜리 메모리의 가장 작은 위치
 
@@ -4607,15 +4658,15 @@ var @!varUsed, @!dynUsed int32 // 메모리를 얼마나 쓰고 있나
 $$|avail|,\;\hbox{|link(avail)|},\;\hbox{|link(link(avail))|},\;\ldots$$
 을 이룬다.
 
-함수 |link(p)|와 |info(p)|는 |mem[p].hh.rh|와 |mem[p].hh.lh|를 읽는다. 이 필드들을 바꿀 때는
+함수 |link(p)|와 |info(p)|는 |mem[p].hh().rh|와 |mem[p].hh().lh|를 읽는다. 이 필드들을 바꿀 때는
 |setLink(p,q)|와 |setInfo(p,q)|를 부른다(\secref{conventions}). 앞으로 나오는 필드들도 모두
 이와 같다.
 
 @<전역 변수@>=
-func link(p pointer) halfword       { return mem[p].hh.rh } // 메모리 낱말의 |link| 필드
-func setLink(p pointer, v halfword) { mem[p].hh.rh = v }
-func info(p pointer) halfword       { return mem[p].hh.lh } // 메모리 낱말의 |info| 필드
-func setInfo(p pointer, v halfword) { mem[p].hh.lh = v }
+func link(p pointer) halfword       { return mem[p&memMask].hh().rh } // 메모리 낱말의 |link| 필드
+func setLink(p pointer, v halfword) { mem[p&memMask].hh().rh = v }
+func info(p pointer) halfword       { return mem[p&memMask].hh().lh } // 메모리 낱말의 |info| 필드
+func setInfo(p pointer, v halfword) { mem[p&memMask].hh().lh = v }
 
 var @!avail pointer // 쓸 수 있는 한 낱말짜리 노드 목록의 머리
 var @!memEnd pointer // |mem|에서 쓰인 마지막 한 낱말짜리 노드
@@ -6621,16 +6672,16 @@ case untilToken:
 일이다.
 
 @<정의@>=
-func typ(p pointer) quarterword            { return mem[p].hh.b0 } // 이것이 어떤 종류의 값인지 알려 준다
-func setType(p pointer, v quarterword)     { mem[p].hh.b0 = v }
-func nameType(p pointer) quarterword       { return mem[p].hh.b1 } // 이 값의 이름에 대한 단서
-func setNameType(p pointer, v quarterword) { mem[p].hh.b1 = v }
+func typ(p pointer) quarterword            { return mem[p&memMask].hh().b0() } // 이것이 어떤 종류의 값인지 알려 준다
+func setType(p pointer, v quarterword)     { mem[p&memMask].hh().setB0(v) }
+func nameType(p pointer) quarterword       { return mem[p&memMask].hh().b1() } // 이 값의 이름에 대한 단서
+func setNameType(p pointer, v quarterword) { mem[p&memMask].hh().setB1(v) }
 
 const @!tokenNodeSize = 2 // 큰 토큰 노드의 낱말 수
 
 func valueLoc(p pointer) pointer       { return p + 1 } // |value| 필드가 든 낱말
-func value(p pointer) int32            { return mem[valueLoc(p)].sc } // 큰 토큰 노드에 저장된 값
-func setValue(p pointer, v int32)      { mem[valueLoc(p)].sc = v }
+func value(p pointer) int32            { return mem[valueLoc(p)&memMask].sc } // 큰 토큰 노드에 저장된 값
+func setValue(p pointer, v int32)      { mem[valueLoc(p)&memMask].sc = v }
 
 const (
 	@!exprBase = hashEnd + 1 // 0번째 \KW{expr} 매개변수의 코드
@@ -7114,8 +7165,8 @@ func setAttrLoc(p pointer, v halfword)   { setInfo(attrLocLoc(p), v) }
 func parent(p pointer) pointer           { return link(attrLocLoc(p)) } // |structured| 변수를 가리키는 포인터
 func setParent(p pointer, v pointer)     { setLink(attrLocLoc(p), v) }
 func subscriptLoc(p pointer) pointer     { return p + 2 } // |subscript| 필드가 사는 곳
-func subscript(p pointer) scaled         { return mem[subscriptLoc(p)].sc } // 이 변수의 첨자
-func setSubscript(p pointer, v scaled)   { mem[subscriptLoc(p)].sc = v }
+func subscript(p pointer) scaled         { return mem[subscriptLoc(p)&memMask].sc } // 이 변수의 첨자
+func setSubscript(p pointer, v scaled)   { mem[subscriptLoc(p)&memMask].sc = v }
 
 const (
 	@!attrNodeSize = 3 // 속성 노드의 낱말 수
@@ -7802,8 +7853,8 @@ func clearSymbol(p pointer, saving bool) {
 @<정의@>=
 const @!saveNodeSize = 2 // 경계가 아닌 저장 스택 노드의 낱말 수
 
-func savedEquiv(p pointer) twoHalves        { return mem[p+1].hh } // |eqtb| 항목이 저장되는 곳
-func setSavedEquiv(p pointer, v twoHalves)  { mem[p+1].hh = v }
+func savedEquiv(p pointer) twoHalves        { return *mem[(p+1)&memMask].hh() } // |eqtb| 항목이 저장되는 곳
+func setSavedEquiv(p pointer, v twoHalves)  { *mem[(p+1)&memMask].hh() = v }
 
 func saveBoundaryItem() (p pointer) { // 그룹 경계 항목을 쌓는다
 	p = getAvail()
@@ -7956,25 +8007,25 @@ $z_k^+$의 |x|와 |y| 좌표를 위한 여섯 낱말이 들어 있다. 제어 �
 경로는 열려 있든 닫혀 있든 언제나 고리 모양의 목록이다.
 
 @<정의@>=
-func leftType(p pointer) quarterword         { return mem[p].hh.b0 } // 이 매듭으로 들어오는 경로의 성질
-func setLeftType(p pointer, v quarterword)   { mem[p].hh.b0 = v }
-func rightType(p pointer) quarterword        { return mem[p].hh.b1 } // 이 매듭을 떠나는 경로의 성질
-func setRightType(p pointer, v quarterword)  { mem[p].hh.b1 = v }
+func leftType(p pointer) quarterword         { return mem[p&memMask].hh().b0() } // 이 매듭으로 들어오는 경로의 성질
+func setLeftType(p pointer, v quarterword)   { mem[p&memMask].hh().setB0(v) }
+func rightType(p pointer) quarterword        { return mem[p&memMask].hh().b1() } // 이 매듭을 떠나는 경로의 성질
+func setRightType(p pointer, v quarterword)  { mem[p&memMask].hh().setB1(v) }
 
 const @!endpoint = 0 // 경로 처음의 |leftType|과 경로 끝의 |rightType|
 
-func xCoord(p pointer) scaled       { return mem[p+1].sc } // 이 매듭의 |x| 좌표
-func setXCoord(p pointer, v scaled) { mem[p+1].sc = v }
-func yCoord(p pointer) scaled       { return mem[p+2].sc } // 이 매듭의 |y| 좌표
-func setYCoord(p pointer, v scaled) { mem[p+2].sc = v }
-func leftX(p pointer) scaled        { return mem[p+3].sc } // 앞 조절점의 |x| 좌표
-func setLeftX(p pointer, v scaled)  { mem[p+3].sc = v }
-func leftY(p pointer) scaled        { return mem[p+4].sc } // 앞 조절점의 |y| 좌표
-func setLeftY(p pointer, v scaled)  { mem[p+4].sc = v }
-func rightX(p pointer) scaled       { return mem[p+5].sc } // 다음 조절점의 |x| 좌표
-func setRightX(p pointer, v scaled) { mem[p+5].sc = v }
-func rightY(p pointer) scaled       { return mem[p+6].sc } // 다음 조절점의 |y| 좌표
-func setRightY(p pointer, v scaled) { mem[p+6].sc = v }
+func xCoord(p pointer) scaled       { return mem[(p+1)&memMask].sc } // 이 매듭의 |x| 좌표
+func setXCoord(p pointer, v scaled) { mem[(p+1)&memMask].sc = v }
+func yCoord(p pointer) scaled       { return mem[(p+2)&memMask].sc } // 이 매듭의 |y| 좌표
+func setYCoord(p pointer, v scaled) { mem[(p+2)&memMask].sc = v }
+func leftX(p pointer) scaled        { return mem[(p+3)&memMask].sc } // 앞 조절점의 |x| 좌표
+func setLeftX(p pointer, v scaled)  { mem[(p+3)&memMask].sc = v }
+func leftY(p pointer) scaled        { return mem[(p+4)&memMask].sc } // 앞 조절점의 |y| 좌표
+func setLeftY(p pointer, v scaled)  { mem[(p+4)&memMask].sc = v }
+func rightX(p pointer) scaled       { return mem[(p+5)&memMask].sc } // 다음 조절점의 |x| 좌표
+func setRightX(p pointer, v scaled) { mem[(p+5)&memMask].sc = v }
+func rightY(p pointer) scaled       { return mem[(p+6)&memMask].sc } // 다음 조절점의 |y| 좌표
+func setRightY(p pointer, v scaled) { mem[(p+6)&memMask].sc = v }
 
 const @!knotNodeSize = 7 // 매듭 노드의 낱말 수
 
@@ -9847,8 +9898,8 @@ func mOffset(p pointer) halfword             { return info(p + 3) } // 가장자
 func setMOffset(p pointer, v halfword)       { setInfo(p+3, v) }
 func lastWindow(p pointer) halfword          { return link(p + 3) } // 마지막 표시는 이 창에 했다
 func setLastWindow(p pointer, v halfword)    { setLink(p+3, v) }
-func lastWindowTime(p pointer) int32         { return mem[p+4].sc } // 창을 이만큼 갱신한 다음에
-func setLastWindowTime(p pointer, v int32)   { mem[p+4].sc = v }
+func lastWindowTime(p pointer) int32         { return mem[(p+4)&memMask].sc } // 창을 이만큼 갱신한 다음에
+func setLastWindowTime(p pointer, v int32)   { mem[(p+4)&memMask].sc = v }
 func nPos(p pointer) halfword                { return info(p + 5) } // |nRover|에 있는 행에 |zeroField|를 더한 것
 func setNPos(p pointer, v halfword)          { setInfo(p+5, v) }
 func nRover(p pointer) pointer               { return link(p + 5) } // 최근에 참조한 행
@@ -13893,8 +13944,8 @@ const (
 	@!coordNodeSize = 3
 )
 
-func maxOffset(p pointer) scaled       { return mem[p+9].sc }
-func setMaxOffset(p pointer, v scaled) { mem[p+9].sc = v }
+func maxOffset(p pointer) scaled       { return mem[(p+9)&memMask].sc }
+func setMaxOffset(p pointer, v scaled) { mem[(p+9)&memMask].sc = v }
 
 @ 서브루틴 |printPen|은 \MF의 복잡한 내부 오프셋 표현에서 다각형의 꼭짓점들을 다시 만들어 낸다. 이
 루틴을 보면 앞의 관례들이 잘 드러난다. 팔분면을 차례로 돌면서 오프셋을 원래 좌표로 되돌려 찍는데, 겹쳐
@@ -20287,8 +20338,8 @@ func stackArgument(p pointer) {
 @<정의@>=
 const @!ifNodeSize = 2 // 조건문을 위한 스택 항목의 낱말 수
 
-func ifLineField(p pointer) int32       { return mem[p+1].sc }
-func setIfLineField(p pointer, v int32) { mem[p+1].sc = v }
+func ifLineField(p pointer) int32       { return mem[(p+1)&memMask].sc }
+func setIfLineField(p pointer, v int32) { mem[(p+1)&memMask].sc = v }
 
 const (
 	@!ifCode = 1 // 값을 구하고 있는 \KW{if}의 코드
@@ -20570,10 +20621,10 @@ const (
 	@!progressionNodeSize = 4 // 수열 노드의 낱말 수
 )
 
-func stepSize(p pointer) scaled          { return mem[p+2].sc } // 등차수열의 공차
-func setStepSize(p pointer, v scaled)    { mem[p+2].sc = v }
-func finalValue(p pointer) scaled        { return mem[p+3].sc } // 등차수열의 마지막 값
-func setFinalValue(p pointer, v scaled)  { mem[p+3].sc = v }
+func stepSize(p pointer) scaled          { return mem[(p+2)&memMask].sc } // 등차수열의 공차
+func setStepSize(p pointer, v scaled)    { mem[(p+2)&memMask].sc = v }
+func finalValue(p pointer) scaled        { return mem[(p+3)&memMask].sc } // 등차수열의 마지막 값
+func setFinalValue(p pointer, v scaled)  { mem[(p+3)&memMask].sc = v }
 
 @ 루프 제어 노드 스택의 맨 위다.
 
@@ -28332,14 +28383,14 @@ const (
 	@!kernFlag = 128 + minQuarterword // 커닝 단계의 연산 코드
 )
 
-func skipByte(k int32) quarterword        { return ligKern[k].b0 }
-func setSkipByte(k int32, v quarterword)  { ligKern[k].b0 = v }
-func nextChar(k int32) quarterword        { return ligKern[k].b1 }
-func setNextChar(k int32, v quarterword)  { ligKern[k].b1 = v }
-func opByte(k int32) quarterword          { return ligKern[k].b2 }
-func setOpByte(k int32, v quarterword)    { ligKern[k].b2 = v }
-func remByte(k int32) quarterword         { return ligKern[k].b3 }
-func setRemByte(k int32, v quarterword)   { ligKern[k].b3 = v }
+func skipByte(k int32) quarterword        { return ligKern[k].b0() }
+func setSkipByte(k int32, v quarterword)  { ligKern[k].setB0(v) }
+func nextChar(k int32) quarterword        { return ligKern[k].b1() }
+func setNextChar(k int32, v quarterword)  { ligKern[k].setB1(v) }
+func opByte(k int32) quarterword          { return ligKern[k].b2() }
+func setOpByte(k int32, v quarterword)    { ligKern[k].setB2(v) }
+func remByte(k int32) quarterword         { return ligKern[k].b3() }
+func setRemByte(k int32, v quarterword)   { ligKern[k].setB3(v) }
 
 @ 늘일 수 있는 문자는 \ID{extensibleRecipe}로 지정하는데, 이것은 \ID{top}, \ID{mid}, \ID{bot}, \ID{rep}라는 네
 바이트로(이 순서로) 이루어진다. 이 바이트들은 큰 기호를 쌓아 올리는 데 쓰는 낱낱의 조각들의 문자 코드다.
@@ -28352,10 +28403,10 @@ func setRemByte(k int32, v quarterword)   { ligKern[k].b3 = v }
 합이다. 조각들이 세로 목록 안에서 맞붙여지기 때문이다.
 
 @<정의@>=
-func setExtTop(k int32, v quarterword) { exten[k].b0 = v } // 조립법의 \ID{top} 조각
-func setExtMid(k int32, v quarterword) { exten[k].b1 = v } // 조립법의 \ID{mid} 조각
-func setExtBot(k int32, v quarterword) { exten[k].b2 = v } // 조립법의 \ID{bot} 조각
-func setExtRep(k int32, v quarterword) { exten[k].b3 = v } // 조립법의 \ID{rep} 조각
+func setExtTop(k int32, v quarterword) { exten[k].setB0(v) } // 조립법의 \ID{top} 조각
+func setExtMid(k int32, v quarterword) { exten[k].setB1(v) } // 조립법의 \ID{mid} 조각
+func setExtBot(k int32, v quarterword) { exten[k].setB2(v) } // 조립법의 \ID{bot} 조각
+func setExtRep(k int32, v quarterword) { exten[k].setB3(v) } // 조립법의 \ID{rep} 조각
 
 @ \.{TFM} 파일의 마지막 부분은 배열 |param|인데, 이것도 \ID{fixWord} 값의 나열이다.
 
@@ -29386,10 +29437,10 @@ func tfmFour(x int32) { // 네 바이트를 |tfmFile|로 내보낸다
 }
 
 func tfmQqqq(x fourQuarters) { // 쿼터워드 넷을 |tfmFile|로 내보낸다
-	tfmOut(qo(x.b0))
-	tfmOut(qo(x.b1))
-	tfmOut(qo(x.b2))
-	tfmOut(qo(x.b3))
+	tfmOut(qo(x.b0()))
+	tfmOut(qo(x.b1()))
+	tfmOut(qo(x.b2()))
+	tfmOut(qo(x.b3()))
 }
 
 @ 이제 \.{TFM} 파일을 실제로 쓴다. 파일 이름은 작업 이름에 `\.{.tfm}'을 붙인 것이다. 파일을 열 수 없으면 사용자에게
@@ -30567,10 +30618,10 @@ func storeBaseFile() {
 	var x int32 // 덤프할 무언가
 	var w fourQuarters // ASCII 코드 네 개
 	dumpFourASCII := func() {
-		w.b0 = qi(so(strPool[k]))
-		w.b1 = qi(so(strPool[k+1]))
-		w.b2 = qi(so(strPool[k+2]))
-		w.b3 = qi(so(strPool[k+3]))
+		w.setB0(qi(so(strPool[k])))
+		w.setB1(qi(so(strPool[k+1])))
+		w.setB2(qi(so(strPool[k+2])))
+		w.setB3(qi(so(strPool[k+3])))
 		dumpQqqq(w)
 	}
 	@<|baseIdent|를 만들고, 기반 파일을 열고, 덤프를 시작했다고 알린다@>
@@ -30597,10 +30648,10 @@ func loadBaseFile() bool {
 	var w fourQuarters // ASCII 코드 네 개
 	undumpFourASCII := func() {
 		w = undumpQqqq()
-		strPool[k] = si(qo(w.b0))
-		strPool[k+1] = si(qo(w.b1))
-		strPool[k+2] = si(qo(w.b2))
-		strPool[k+3] = si(qo(w.b3))
+		strPool[k] = si(qo(w.b0()))
+		strPool[k+1] = si(qo(w.b1()))
+		strPool[k+2] = si(qo(w.b2()))
+		strPool[k+3] = si(qo(w.b3()))
 	}
 	@<일관성 검사를 위한 상수들을 언덤프한다@>
 	@<문자열 풀을 언덤프한다@>
@@ -30625,13 +30676,13 @@ var @!baseFile wordFile // 기반 정보의 입력이나 출력에 쓴다
 @<함수들@>=
 func dumpWd(w memoryWord)      { baseFile.buf = w; wPut(&baseFile) }
 func dumpInt(x int32)          { baseFile.buf = memoryWord{sc: x}; wPut(&baseFile) }
-func dumpHh(h twoHalves)       { baseFile.buf = memoryWord{hh: h}; wPut(&baseFile) }
-func dumpQqqq(q fourQuarters)  { baseFile.buf = memoryWord{qqqq: q}; wPut(&baseFile) }
+func dumpHh(h twoHalves)       { *baseFile.buf.hh() = h; wPut(&baseFile) }
+func dumpQqqq(q fourQuarters)  { baseFile.buf = memoryWord{}; *baseFile.buf.qqqq() = q; wPut(&baseFile) }
 
-@ 낱말 파일의 기본 연산은 현재 원소 |f.buf|를 파일에 쓰는 |wPut|과 다음 원소를 |f.buf|에 읽어 오는 |wGet|이다. 형
-|memoryWord|는 필드가 따로따로인 구조체이므로(\secref{memory-word}), 한 낱말을 쓸 때 모든 필드를 차례로 쓴다. 32비트
-정수 아홉 개, 모두 36바이트다. 바이트 순서는 리틀 엔디언으로 정한다. 기반 파일이 다 그렇듯이, 이 형식의 파일은 이
-프로그램으로 만든 \MF끼리만 주고받을 수 있다.
+@ 낱말 파일의 기본 연산은 현재 원소 |f.buf|를 파일에 쓰는 |wPut|과 다음 원소를 |f.buf|에 읽어 오는 |wGet|이다. 낱말은
+변형들을 겹쳐 놓은 8바이트이므로(\secref{memory-word}), 그 8바이트를 메모리에 놓인 그대로 쓰고 읽는다. 그래서 바이트 순서는
+이 프로그램이 도는 기계를 따른다. 기반 파일이 다 그렇듯이, 이 형식의 파일은 이 프로그램으로 만든 \MF끼리만 주고받을 수
+있다. 낱말을 하나하나 아홉 필드로 풀어 36바이트씩 쓰던 예전 형식보다 기반 파일이 4분의 1 남짓으로 줄었다.
 @^system dependencies@>
 
 \PASCAL의 파일 변수에는 ``버퍼 변수'' |baseFile^|가 딸려 있어서, 파일을 열면 첫 원소가 곧바로 그 안에 들어온다.
@@ -30640,29 +30691,13 @@ func dumpQqqq(q fourQuarters)  { baseFile.buf = memoryWord{qqqq: q}; wPut(&baseF
 
 @<함수들@>=
 func wPut(f *wordFile) { // |f.buf|를 파일에 쓴다
-	var b [36]byte
-	var v = [9]uint32{uint32(f.buf.sc),
-		uint32(f.buf.hh.rh), uint32(f.buf.hh.lh), uint32(f.buf.hh.b0), uint32(f.buf.hh.b1),
-		uint32(f.buf.qqqq.b0), uint32(f.buf.qqqq.b1), uint32(f.buf.qqqq.b2), uint32(f.buf.qqqq.b3)}
-	for i, x := range v {
-		b[4*i], b[4*i+1], b[4*i+2], b[4*i+3] = byte(x), byte(x>>8), byte(x>>16), byte(x>>24)
-	}
-	f.w.Write(b[:])
+	f.w.Write((*[8]byte)(unsafe.Pointer(&f.buf))[:])
 }
 
 func wGet(f *wordFile) { // 다음 원소를 |f.buf|에 읽어 온다
-	var b [36]byte
-	var v [9]uint32
-	if _, err := io.ReadFull(f.r, b[:]); err != nil {
+	if _, err := io.ReadFull(f.r, (*[8]byte)(unsafe.Pointer(&f.buf))[:]); err != nil {
 		f.atEOF = true
-		return
 	}
-	for i := range v {
-		v[i] = uint32(b[4*i]) | uint32(b[4*i+1])<<8 | uint32(b[4*i+2])<<16 | uint32(b[4*i+3])<<24
-	}
-	f.buf.sc = int32(v[0])
-	f.buf.hh = twoHalves{rh: int32(v[1]), lh: int32(v[2]), b0: int32(v[3]), b1: int32(v[4])}
-	f.buf.qqqq = fourQuarters{int32(v[5]), int32(v[6]), int32(v[7]), int32(v[8])}
 }
 
 @ 언덤프 함수들은 조금 더 복잡하다. 읽어 들이는 값의 범위를 검사해야 하기 때문이다. 우리는 `|undump(a,b,&x)|'라고
@@ -30672,8 +30707,8 @@ func wGet(f *wordFile) { // 다음 원소를 |f.buf|에 읽어 온다
 @<함수들@>=
 func undumpWd() memoryWord     { wGet(&baseFile); return baseFile.buf }
 func undumpInt() int32         { wGet(&baseFile); return baseFile.buf.sc }
-func undumpHh() twoHalves      { wGet(&baseFile); return baseFile.buf.hh }
-func undumpQqqq() fourQuarters { wGet(&baseFile); return baseFile.buf.qqqq }
+func undumpHh() twoHalves      { wGet(&baseFile); return *baseFile.buf.hh() }
+func undumpQqqq() fourQuarters { wGet(&baseFile); return *baseFile.buf.qqqq() }
 
 func undump(a, b int32, v *int32) bool {
 	x := undumpInt()
@@ -31086,6 +31121,21 @@ wClose(&baseFile)
 @<전역 변수@>=
 var @!readyAlready int32 // 경제를 위해 순수를 희생한다
 
+@ 환경 변수 \.{MFCPUPROFILE}에 파일 이름을 주면, \MF는 그 파일에 \GO/의 CPU 프로파일을 남긴다. 원본에는 없는,
+이 판의 실험을 위한 장치다(\secref{go-native}). 프로파일로는 시간이 어디에 드는지 알아볼 수 있고, \GO/ 컴파일러의 프로파일
+기반 최적화(PGO)도 할 수 있다. 꾸러미 디렉터리에 프로파일을 \.{default.pgo}라는 이름으로 두면 \.{go build}가 저절로 그것을
+읽어, 자주 지나는 길을 더 과감하게 인라인하는 따위로 코드를 다듬는다. 그 파일은 \.{make pgo}가 글꼴 여러 개를 만들며 뜬다.
+
+프로파일을 멈추는 함수는 |main|이 맨 처음에 미루어 두므로 맨 나중에 불린다. 그래서 |endOfMF|로 끝나든 |finalEnd|로 끝나든
+마지막 순간까지 프로파일에 들어간다.
+
+@<CPU 프로파일을 원하면 뜨기 시작한다@>=
+if name := os.Getenv("MFCPUPROFILE"); name != "" {
+	if f, err := os.Create(name); err == nil && pprof.StartCPUProfile(f) == nil {
+		defer pprof.StopCPUProfile()
+	}
+}
+
 @ \seclabel{main}이제 정말로 그것이다. \MF는 여기서 시작하고 여기서 끝난다.
 
 변수 |readyAlready|에 관한 처음의 검사는 실행 시스템이 그런 ``실수''를 찾아낼 만큼 영리하면 지워야 한다.
@@ -31099,6 +31149,7 @@ var @!readyAlready int32 // 경제를 위해 순수를 희생한다
 
 @<주 프로그램@>=
 func main() { // |startHere|
+	@<CPU 프로파일을 원하면 뜨기 시작한다@>
 	@<바깥 레이블로 가는 |panic|을 받을 함수를 미루어 둔다@>
 	iniVersion = len(os.Args) > 1 && os.Args[1] == "-ini"
 	@<끼어들기 신호를 받으면...@>
@@ -31475,8 +31526,8 @@ case 15:
 
 이 \GO/ 판에서 시스템에 따라 바꾼 것은 바꿈 파일이 아니라 본문 곳곳에 녹아 있다. 한데 모아 두면 다음과 같다.
 
-\smallskip\item{$\bullet$} 파일 입출력은 |os|와 |bufio| 꾸러미로 한다(3부). 낱말 파일은 32비트 정수 아홉 개를 리틀
-엔디언으로 쓴다(48부).
+\smallskip\item{$\bullet$} 파일 입출력은 |os|와 |bufio| 꾸러미로 한다(3부). 낱말 파일은 메모리 낱말의 8바이트를
+놓인 그대로 쓴다(48부).
 
 \smallskip\item{$\bullet$} 입력 파일은 먼저 현재 디렉터리에서, 다음에 환경 변수 \.{MFINPUTS}가 가리키는 곳에서, 마지막으로
 고루틴들이 배포판의 파일 목록 데이터베이스를 읽어 만든 색인에서 찾는다(\secref{external-name}). 기반 파일은 \.{MFBASES}에서 찾는다(38부).
