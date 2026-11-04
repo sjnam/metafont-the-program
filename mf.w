@@ -164,6 +164,11 @@ plain 기반 파일은 299킬로바이트에서 66킬로바이트가 되었다.
 계산하는지 따져 밝히고, 원래의 반복과 3억 쌍의 무작위 입력과 경계값에서 결과와 넘침 표시가 같은지도
 따로 확인했다. 벤치마크가 1.05초에서 0.70초로 줄어, 같은 기계에서 \TeX\ Live의 \.{mf-nowin}(0.79초)보다
 빨라졌다.
+\item{$\bullet$} 입력 줄을 |ReadSlice|로 한 번에 받고(\secref{input-ln}), \.{GF} 버퍼를 바이트 배열로 바꾸어 그
+구간을 한 번에 쓴다. 기록 파일과 터미널에 문자를 쓸 때 |any|를 거치지 않고(\secref{print-char}), 기록 파일의 쓰기
+버퍼를 64킬로바이트로 늘렸다. 모두 바이트마다 함수를 부르던 것을 없앤 것이다. 벤치마크는 0.69초에서 0.68초로 조금
+줄었을 뿐이지만, \.{cmr10}을 \KW{loggingall}로 모두 추적해 기록 파일이 9메가바이트가 되는 작업은 0.13초에서
+0.11초로 줄었다.
 \smallskip\noindent
 결과가 정말 같은지는 \.{tests/regress.sh}로 확인한다. 이 스크립트는 \.{main} 가지의 \.{mf.w}로
 기준 프로그램을 따로 만들어, 두 프로그램의 출력을 바이트 단위로 견준다. 견주는 작업에는 글꼴
@@ -768,7 +773,8 @@ var @!nameLength int32 // |nameOfFile|에서 실제로 뜻이 있는 문자의 �
 
 \MF의 파일 여는 프로시저들은 |nameOfFile|이 가리키는 파일을 열지 못하면 |false|를
 돌려준다. 파일의 바깥 이름은 곧 뒤에서 정의하는 함수 |externalName|이 |nameOfFile|에서
-만들어 낸다. 낱말 파일의 형 |wordFile|은 \secref{memory-word}에서 정의한다.
+만들어 낸다. 텍스트 파일을 출력용으로 열면 64킬로바이트짜리 쓰기 버퍼를 둔다. 기록 파일처럼
+많이 쓰는 파일은 버퍼가 클수록 시스템 호출이 준다. 낱말 파일의 형 |wordFile|은 \secref{memory-word}에서 정의한다.
 
 @<함수들@>=
 func aOpenIn(f *alphaFile) bool { // 텍스트 파일을 입력용으로 연다
@@ -785,7 +791,7 @@ func aOpenOut(f *alphaFile) bool { // 텍스트 파일을 출력용으로 연다
 	if err != nil {
 		return false
 	}
-	*f = alphaFile{f: file, w: bufio.NewWriter(file)}
+	*f = alphaFile{f: file, w: bufio.NewWriterSize(file, 1<<16)}
 	return true
 }
 
@@ -1185,7 +1191,7 @@ var @!first int32 // |buffer|에서 쓰이지 않는 첫 위치
 var @!last int32 // |buffer|에 방금 입력한 줄의 끝
 var @!maxBufStack int32 // |buffer|에서 쓰인 가장 큰 첨자
 
-@ 함수 |inputLn|은 주어진 파일의 다음 줄을 버퍼 배열의 빈자리에 가져다 놓고 |true|를
+@ \seclabel{input-ln}함수 |inputLn|은 주어진 파일의 다음 줄을 버퍼 배열의 빈자리에 가져다 놓고 |true|를
 돌려준다. 다만 파일을 이미 다 읽었다면 |false|를 돌려주고 |last=first|로 둔다. 다음 줄을
 이루는 |asciiCode| 값들은 |buffer[first]|, |buffer[first+1]|, \dots, |buffer[last-1]|에
 들어가고, 전역 변수 |last|는 |first|에 그 줄의 길이를 더한 값이 된다. 줄 끝의 빈칸들은
@@ -1217,13 +1223,19 @@ var @!maxBufStack int32 // |buffer|에서 쓰인 가장 큰 첨자
 @<함수들@>=
 func inputLn(f *alphaFile, bypassEoln bool) bool { // 다음 줄을 입력하거나 |false|를 돌려준다
 	last = first // 마태복음 19:30 참조
-	c, err := f.r.ReadByte()
-	if err != nil {
+	line, err := f.r.ReadSlice('\n')
+	if len(line) == 0 {
 		return false
 	}
 	lastNonblank := first // 줄 끝의 공백을 지운 |last|
-	for err == nil && c != '\n' {
-		@<문자 |c|를 |buffer|에 넣고 다음 문자를 읽는다@>
+	for {
+		for _, c := range bytes.TrimSuffix(line, []byte{'\n'}) {
+			@<문자 |c|를 |buffer|에 넣는다@>
+		}
+		if err != bufio.ErrBufferFull {
+			break
+		}
+		line, err = f.r.ReadSlice('\n')
 	}
 	last = lastNonblank
 	return true
@@ -1231,16 +1243,17 @@ func inputLn(f *alphaFile, bypassEoln bool) bool { // 다음 줄을 입력하거
 
 @ 앞 절의 안쪽 루프 몸체다. 입력의 모든 문자가 이 루프를 지나 들어오므로, 이것은 \MF\ 전체의
 ``안쪽 루프''에 든다. 그러니 시스템에 문자 배열을 한꺼번에 읽어 들이는 특별한 루틴이 있다면
-그것을 써서 부담을 줄이는 것이 현명하다. 여기서는 해야 할 일을 알기 쉽게 보이려고 한 번에
-한 바이트씩 읽지만, 시스템에 따라서는 대개 더 세밀하게 다듬을 수 있다. 다만 \GO/의
-|bufio.Reader|가 이미 읽기를 모아서 하므로, |ReadByte|를 한 번 부르는 데 드는 비용은 그리
-크지 않다.
+그것을 써서 부담을 줄이는 것이 현명하다. \GO/에는 바로 그런 루틴이 있다. |bufio.Reader|의
+|ReadSlice|는 줄 끝 문자까지를 읽기 버퍼 안의 조각으로 복사 없이 내준다. 그래서 바이트마다
+|ReadByte|를 부르던 예전과 달리, 줄마다 한 번만 부르고 그 조각을 훑는다(2026년 11월 5일). 줄이
+읽기 버퍼보다 길면 앞부분만 |bufio.ErrBufferFull|과 함께 오므로, 나머지를 이어서 받는다. 줄 끝 문자를
+읽기 전에 버퍼가 넘치면 넘친 곳보다 멀리까지 읽어 버리지만, 그때는 \MF가 곧바로 멈추므로 상관없다.
 @^system dependencies@>
 
 빈칸이 아닌 문자를 넣을 때마다 |lastNonblank|를 그 뒤로 옮겨 두면, 줄을 다 읽었을 때
 |lastNonblank|가 곧 줄 끝의 빈칸을 지운 |last|가 된다.
 
-@<문자 |c|를 |buffer|에...@>=
+@<문자 |c|를 |buffer|에 넣는다@>=
 if last >= maxBufStack {
 	maxBufStack = last + 1
 	if maxBufStack == bufSize {
@@ -1248,7 +1261,6 @@ if last >= maxBufStack {
 	}
 }
 buffer[last] = xord[c]
-c, err = f.r.ReadByte()
 last++
 if buffer[last-1] != ' ' {
 	lastNonblank = last
@@ -1845,10 +1857,10 @@ fileOffset = 0
 @<정의@>=
 func wterm(xs ...any)   { write(&termOut, xs...) }
 func wtermLn(xs ...any) { writeLn(&termOut, xs...) }
-func wtermCr()          { writeLn(&termOut) }
+func wtermCr()          { termOut.w.WriteByte('\n') }
 func wlog(xs ...any)    { write(&logFile, xs...) }
 func wlogLn(xs ...any)  { writeLn(&logFile, xs...) }
-func wlogCr()           { writeLn(&logFile) }
+func wlogCr()           { logFile.w.WriteByte('\n') }
 
 @ 텍스트 출력의 한 줄을 끝내려면 |printLn|을 부른다. 줄을 바꾼 곳의 오프셋은 0으로
 되돌리지만, |tally|는 그대로 둔다.
@@ -1881,19 +1893,23 @@ func printLn() { // 줄의 끝을 찍는다
 때 문자열 공간이 가득 찼으면 문자를 조용히 버린다. 오류 메시지를 찍는 도중에 또 오류를 낼
 수는 없기 때문이다.
 
+문자 하나를 쓸 때는 |wterm|이나 |wlog| 대신 |bufio.Writer|의 |WriteByte|를 바로 부른다. 그 함수들은
+인자를 |any|로 받으므로 문자마다 가변 인자 슬라이스를 만들고 형을 가려야 한다(2026년 11월 5일).
+@^inner loop@>
+
 @<기본 인쇄...@>=
 func printChar(s asciiCode) { // 문자 하나를 찍는다
 	switch selector {
 	case termAndLog:
 		@<문자 |s|를 터미널과 기록 파일에 함께 찍는다@>
 	case logOnly:
-		wlog(xchr[s])
+		logFile.w.WriteByte(xchr[s])
 		fileOffset++
 		if fileOffset == maxPrintLine {
 			printLn()
 		}
 	case termOnly:
-		wterm(xchr[s])
+		termOut.w.WriteByte(xchr[s])
 		termOffset++
 		if termOffset == maxPrintLine {
 			printLn()
@@ -1916,8 +1932,8 @@ func printChar(s asciiCode) { // 문자 하나를 찍는다
 줄을 바꾼다. 여기서 |printLn|을 부르면 다른 쪽까지 줄이 바뀌어 버린다.
 
 @<문자 |s|를 터미널과...@>=
-wterm(xchr[s])
-wlog(xchr[s])
+termOut.w.WriteByte(xchr[s])
+logFile.w.WriteByte(xchr[s])
 termOffset++
 fileOffset++
 if termOffset == maxPrintLine {
@@ -30000,10 +30016,12 @@ totalChars = 0
 @<전역 형@>=
 type @!gfIndex = int32 // 출력 버퍼의 첨자; |0 .. gfBufSize|
 
-@ 버퍼와 그 포인터들이다.
+@ 버퍼와 그 포인터들이다. 버퍼는 바이트 배열이다. 그러면 버퍼의 구간이 그대로 슬라이스가 되어 파일에 한
+번에 쓸 수 있다(다음 절).
+@^system dependencies@>
 
 @<전역 변수@>=
-var @!gfBuf [gfBufSize + 1]eightBits // \.{GF} 출력을 위한 버퍼
+var @!gfBuf [gfBufSize + 1]byte // \.{GF} 출력을 위한 버퍼
 var @!halfBuf gfIndex // |gfBufSize|의 절반
 var @!gfLimit gfIndex // 현재 반쪽 버퍼의 끝
 var @!gfPtr gfIndex // 다음에 쓸 수 있는 버퍼 주소
@@ -30019,14 +30037,12 @@ gfOffset = 0
 
 @ 버퍼 |gfBuf[a .. b]|를 |gfFile|로 실제로 내보내는 일은 |writeGf(a,b)|가 한다. 이 프로시저를 부를 때는 |a|와 |b+1|이
 둘 다 4의 배수라고 가정해도 안전하다. 낱말 단위로 쓰는 시스템이라면 이 사실을 쓸모 있게 이용할 수 있을 것이다.
+여기서는 구간 |gfBuf[a:b+1]|을 슬라이스로 넘겨 한 번에 쓴다. 예전에는 바이트마다 |bPut|을 불렀다.
 @^system dependencies@>
 
 @<함수들@>=
 func writeGf(a, b gfIndex) {
-	var k gfIndex
-	for k = a; k <= b; k++ {
-		bPut(&gfFile, gfBuf[k])
-	}
+	gfFile.w.Write(gfBuf[a : b+1])
 }
 
 @ 원본은 바이트 하나를 버퍼에 넣을 때마다 프로시저를 부르는 비용을 치르지 않으려고 매크로 \\{gf\_out}을 썼다.
@@ -30034,7 +30050,7 @@ func writeGf(a, b gfIndex) {
 
 @<함수들@>=
 func gfOut(x int32) {
-	gfBuf[gfPtr] = x
+	gfBuf[gfPtr] = byte(x)
 	gfPtr++
 	if gfPtr == gfLimit {
 		gfSwap()

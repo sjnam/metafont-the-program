@@ -13,7 +13,7 @@
 #     출력의 날짜는 늘 1776년 7월 4일이므로 모두 바이트 그대로 견준다.
 #   - cmr10을 2000dpi로 만든 것(cmr10-2000)
 #   - 글꼴 열 개를 세 번씩 잇달아 읽어 4007자를 만드는 작업(big, 오류가 1494개 난다)
-#   - logo10을 loggingall로 모두 추적해 기록 파일이 커지는 작업(trace)
+#   - cmr10을 600dpi로 만들며 loggingall로 모두 추적해 기록 파일이 9MB쯤 되는 작업(trace)
 #   - 2만 자가 넘는 줄로 입력 버퍼를 넘치게 하는 작업(longline)
 #   - 문자 두 개를 내보낸 뒤 한 문장에서 오류가 100개 나서 그만두는 작업(fatal)
 #
@@ -54,7 +54,7 @@ mkdir -p "$W/doc"; cd "$W/doc"
   for r in 1 2 3; do for f in cmr10 cmbx12 cmti10 cmmi10 cmsy10 cmex10 cmtt10 cmss10 cmcsc10 cmfib8; do
     echo "input $f;"; done; done
   echo 'end.'; } > big.mf
-printf '%s\n' 'batchmode; loggingall; input logo10' > trace.mf
+printf '%s\n' 'batchmode; loggingall; input cmr10' > trace.mf
 { printf '%s\n' 'batchmode;' 'show 1;'
   for i in $(seq 3000); do printf '%s' 'abcdefgh '; done; printf '\n%s\n' 'end'; } > longline.mf
 { printf '%s\n' 'batchmode; mode_setup; font_size 10pt#;'
@@ -67,7 +67,7 @@ jobs() {
     echo "$f-$((200 * mag))|\\mode=lowres; mag=$mag; batchmode; input $f"; done; done
   echo 'cmr10-2000|\mode=lowres; mag=10; batchmode; input cmr10'
   echo 'big|\mode=lowres; mag=3; input big'
-  echo 'trace|\mode=lowres; input trace'
+  echo 'trace|\mode=lowres; mag=3; input trace'
   echo 'longline|\\input longline'
   echo 'fatal|\mode=lowres; input fatal'
 }
@@ -97,7 +97,7 @@ grep -q '다르다' "$W/report" && bad=1
 # 4. 원하면 걸린 시간을 견준다(다섯 번 가운데 가장 짧은 것)
 if [ "$timing" = 1 ]; then
   echo "걸린 시간(초, 다섯 번 가운데 가장 짧은 것): 기준 / 이 가지"
-  for job in ini cmr10-600 cmr10-2000 big; do
+  for job in ini cmr10-600 cmr10-2000 trace big; do
     for who in ref ours; do
       mf=$REF; [ $who = ours ] && mf=$OURS
       cd "$W/$who/base"
@@ -105,6 +105,7 @@ if [ "$timing" = 1 ]; then
         ini) set -- -ini plain dump ;;
         cmr10-600) set -- '&plain \mode=lowres; mag=3; batchmode; input cmr10' ;;
         cmr10-2000) set -- '&plain \mode=lowres; mag=10; batchmode; input cmr10' ;;
+        trace) cp "$W/doc/trace.mf" .; set -- '&plain \mode=lowres; mag=3; input trace' ;;
         big) cp "$W/doc/big.mf" .; set -- '&plain \mode=lowres; mag=3; input big' ;;
       esac
       t=$(for i in 1 2 3 4 5; do /usr/bin/time -p "$mf" "$@" </dev/null 2>&1 >/dev/null |
