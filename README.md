@@ -31,6 +31,9 @@
 | `tests/trap.sh` | TRAP 테스트 |
 | `tests/compare.sh` | 글꼴 몇 개를 진짜 METAFONT와 함께 만들어 TFM, GF, 기록 파일을 비교한다 |
 | `tests/regress.sh` | `main` 가지의 METAFONT와 출력이 바이트까지 같은지 본다(go-native 실험) |
+| `tests/fuzz/` | `main` 가지의 METAFONT와 견주는 차등 퍼징 |
+| `tests/pgo.sh` | 프로파일 기반 최적화에 쓰는 `default.pgo`를 만든다 |
+| `default.pgo` | `go build`가 읽는 CPU 프로파일 |
 | `tests/typeset-check.py` | `mf.pdf`에서 오류 없이 조용히 깨진 조판(악센트가 된 따옴표, 잘못 끊긴 수 따위)을 찾는다 |
 | `orig/mf.web` | 옮긴 원본(CTAN의 2.71828182) |
 | `orig/names.tsv` | 원본의 영어 이름과 한글 이름의 대응표(부 제목 52개와 이름 있는 절 500여 개) |
@@ -116,6 +119,9 @@ make pdf        # 문서만: mf.w → mf.tex(gweave) → mf.pdf(luatex 두 번, 
 make check      # 조판 경고(Overfull, Underfull 따위)와 조용히 깨진 조판의 수를 센다. 둘 다 0이어야 한다
 make test       # make compare와 make trap(아래 테스트)을 함께 돌린다
 make regress    # main 가지의 METAFONT와 출력이 바이트까지 같은지 본다(아래 테스트)
+make fuzz       # main 가지의 METAFONT와 견주는 차등 퍼징(아래 테스트)
+make pgo        # 프로파일 기반 최적화에 쓰는 default.pgo를 새로 만든다
+make install    # mf 명령이 이 METAFONT를 부르게 한다(아래)
 make deco       # 쪽마다 액자를 두른 판: mf.w + mf-deco.ch → mf-deco.pdf(mf.pdf는 그대로 둔다)
 make clean
 ```
@@ -157,6 +163,28 @@ cd build
 오류가 나면 원본처럼 터미널에서 다음 동작을 묻는다. 대화가 필요 없을 때는 `batchmode`나 `nonstopmode`를
 쓴다. 출력의 날짜는 원본의 `fixDateAndTime`처럼 늘 1776년 7월 4일 정오다. 그래서 같은 입력이면 언제
 돌려도 같은 파일이 나온다.
+
+### `mf` 명령으로 설치하기
+
+```sh
+make install                # ~/.local/bin/mf가 이 METAFONT를 부른다
+make install PREFIX=~/opt   # 다른 곳에 설치한다
+make uninstall              # 설치한 것을 지운다
+```
+
+`make install`은 실행 파일과 그것으로 만든 plain 기반을 `$PREFIX/share/gomf`에 두고, `$PREFIX/bin/mf`에는
+`MFBASES`를 그 디렉터리로 놓고 실행 파일을 부르는 작은 스크립트를 둔다. 그래서 `&plain` 없이
+`mf '\mode=lowres; input cmr10'`이라고만 해도 plain 기반을 읽는다. 이 기반은 TeX Live의 것과 형식이 달라
+서로 읽을 수 없으므로 kpsewhich로 찾지 않는다. `MFBASES`는 TeX Live의 프로그램들도 쓰는 변수라서 셸 전체가
+아니라 이 스크립트 안에서만 놓는다.
+
+`$PREFIX/bin`이 PATH에서 TeX Live의 디렉터리(`/Library/TeX/texbin` 따위)보다 앞에 있어야 `mf`가 이것을
+부른다. 설치한 뒤에는 셸에서 `hash -r`을 하고 `which mf`로 확인한다. 바뀌는 것은 `mf` 명령 하나뿐이고,
+`mf-nowin`이나 `mpost` 같은 TeX Live의 다른 프로그램은 그대로다. 이 METAFONT는 TeX Live의
+`-interaction=`이나 `-output-directory` 같은 옵션을 모른다. 맨 앞의 `-ini` 말고는 원본처럼 인자를 첫 입력
+줄로 읽는다. `$PREFIX/bin/mf`가 이미 있는데 이 저장소가 설치한 것이 아니면, `make install`도
+`make uninstall`도 그것을 건드리지 않고 멈춘다. 실행 파일을 새로 빌드하면 기반의 형식이 바뀌었을 수 있으니
+`make install`을 다시 한다.
 
 ## 테스트
 
@@ -220,6 +248,32 @@ METAFONT를 따로 만들고, 두 프로그램으로 같은 작업을 돌려 남
 TRAP 테스트의 결과, plain 기반을 만들 때의 기록, 글꼴 열한 개를 200dpi와 600dpi로 만든 GF와
 TFM과 기록 파일, 글꼴 열 개를 한 작업에서 세 번씩 읽어 4007자를 만드는 벤치마크(`big`), 모든 추적을
 켠 작업, 입력 버퍼가 넘치는 작업, 오류 100개로 그만두는 작업이다. `-t`를 주면 걸린 시간도 견준다.
+
+### 차등 퍼징
+
+```sh
+make fuzz                   # 1분 동안 (FUZZTIME=10m 따위로 바꿀 수 있다)
+go test ./tests/fuzz        # 씨앗 입력만
+```
+
+`tests/fuzz`는 Go의 퍼징으로 METAFONT 입력을 만들어, `main` 가지의 `mf.w`로 만든 METAFONT(`build/ref/mf`)와
+이 가지의 METAFONT에 함께 넣는다. 그리고 터미널 출력과 남긴 파일(GF, TFM, 기록 파일)이 바이트까지 같은지
+본다. METAFONT는 한 프로세스에서 되풀이해 돌릴 수 없으므로 입력마다 실행 파일을 띄운다. macOS에서는
+`sandbox-exec`로 가두어, 무작위 입력이 작업 디렉터리 밖에 파일을 쓰지 못하게 한다. 다른 결과가 나오면 그
+입력이 `tests/fuzz/testdata/fuzz/FuzzSame/`에 남는다.
+
+### 프로파일 기반 최적화
+
+```sh
+make pgo                    # tests/pgo.sh: default.pgo를 새로 만든다
+MFCPUPROFILE=cpu.pprof build/mf '&plain \mode=lowres; input cmr10'   # 아무 작업이나 CPU 프로파일을 뜬다
+```
+
+저장소 맨 위의 `default.pgo`는 Go 컴파일러의 프로파일 기반 최적화(PGO)에 쓰는 CPU 프로파일이다.
+`go build`가 저절로 읽는다. `tests/pgo.sh`는 plain 기반을 만들 때와 벤치마크(`big`)를 돌릴 때의
+프로파일을 합쳐 이 파일을 만든다. 코드를 크게 고친 뒤에는 다시 만들어 두는 것이 좋다. macOS에서는
+Go의 CPU 프로파일러가 표본을 마지막 시스템 호출에 잘못 붙이므로, 리눅스가 아니면 도커 컨테이너
+안에서 프로파일을 뜬다.
 
 ## 저작권과 이름
 

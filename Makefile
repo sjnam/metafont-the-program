@@ -10,6 +10,9 @@
 #   make test       compare와 trap을 모두 돌린다
 #   make regress    main 가지의 METAFONT와 출력이 바이트까지 같은지 본다(trap을 먼저 돌린다)
 #   make pgo        프로파일 기반 최적화에 쓸 default.pgo를 새로 만든다(리눅스가 아니면 docker)
+#   make fuzz       main 가지의 METAFONT와 출력을 견주는 차등 퍼징을 FUZZTIME(기본 1m) 동안 돌린다
+#   make install    mf 명령이 이 METAFONT를 부르게 한다(PREFIX, 기본 ~/.local)
+#   make uninstall  make install로 설치한 것을 지운다
 #   make clean      만든 것을 모두 지운다
 #   make deco       테두리에 액자를 두른 문서(mf-deco.pdf)를 만든다
 #   make twill      쪽마다 미니 색인을 붙인 문서(mf-twill.pdf)를 gtwill로 만든다
@@ -17,7 +20,7 @@
 
 BUILD = build
 
-.PHONY: all build pdf check base compare trap test regress pgo clean deco twill twill-deco
+.PHONY: all build pdf check base compare trap test regress pgo fuzz install uninstall clean deco twill twill-deco
 
 all: build pdf
 
@@ -80,6 +83,44 @@ regress: $(BUILD)/mf trap
 
 pgo: mf.go
 	tests/pgo.sh
+
+# 차등 퍼징의 기준: main 가지의 mf.w로 만든 METAFONT
+$(BUILD)/ref/mf: .git/refs/heads/main
+	@mkdir -p $(BUILD)/ref
+	git show main:mf.w > $(BUILD)/ref/mf.w
+	cp go.mod $(BUILD)/ref/
+	cd $(BUILD)/ref && gtangle mf.w >/dev/null && go build -o mf .
+
+FUZZTIME = 1m
+fuzz: $(BUILD)/mf $(BUILD)/ref/mf
+	go test ./tests/fuzz -run=FuzzSame -fuzz=FuzzSame -fuzztime=$(FUZZTIME)
+
+# 실행 파일과 그것으로 만든 plain 기반은 $(MFDIR)에 두고, $(BINDIR)/mf에는 MFBASES를
+# $(MFDIR)로 놓고 그 실행 파일을 부르는 작은 스크립트를 둔다. MFBASES는 TeX Live의
+# 프로그램들도 쓰는 변수이므로 셸 전체에 놓지 않고 이 스크립트 안에서만 놓는다.
+# 첫 줄에 `&기반'이 없으면 MFBASES의 plain.base를 읽으므로 `mf "\mode=localfont; input cmr10"'처럼
+# 쓸 수 있다. $(BINDIR)이 PATH에서 TeX Live의 디렉터리보다 앞에 있어야 mf가 이것을 부른다.
+PREFIX = $(HOME)/.local
+BINDIR = $(PREFIX)/bin
+MFDIR = $(PREFIX)/share/gomf
+MARK = installed by metafont-the-program
+
+install: $(BUILD)/mf
+	@if [ -e $(BINDIR)/mf ] && ! grep -q '$(MARK)' $(BINDIR)/mf 2>/dev/null; then \
+	  echo "$(BINDIR)/mf가 이미 있다. 이 저장소가 설치한 것이 아니므로 덮어쓰지 않는다." >&2; exit 1; fi
+	mkdir -p $(BINDIR) $(MFDIR)
+	cp $(BUILD)/mf $(MFDIR)/mf
+	cd $(MFDIR) && rm -f plain.base && ./mf -ini plain dump </dev/null >/dev/null && rm -f plain.log
+	printf '%s\n' '#!/bin/sh' '# $(MARK)' \
+	  'MFBASES="$(MFDIR)" exec "$(MFDIR)/mf" "$$@"' > $(BINDIR)/mf
+	chmod +x $(BINDIR)/mf
+	@echo "설치했다: $(BINDIR)/mf -> $(MFDIR)/mf (셸에서 hash -r 한 뒤 which mf로 확인한다)"
+
+uninstall:
+	@if [ -e $(BINDIR)/mf ] && ! grep -q '$(MARK)' $(BINDIR)/mf 2>/dev/null; then \
+	  echo "$(BINDIR)/mf는 이 저장소가 설치한 것이 아니므로 지우지 않는다." >&2; exit 1; fi
+	rm -f $(BINDIR)/mf
+	rm -rf $(MFDIR)
 
 # 액자를 두른 판은 mf-deco.pdf로 따로 만들어 mf.pdf를 건드리지 않는다
 mf-deco.pdf: mf.w mf-deco.ch decoframe.pdf
