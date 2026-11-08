@@ -36,7 +36,7 @@ mf-twill-deco.smref
 
 .DS_Store
 
-# make trap: tests/trap.sh가 처음 돌 때 CTAN에서 받아 오는 크누스의 원본 파일들
+# make trap: tests/trap.sh가 처음 돌 때 CTAN에서 받아 오는 커누스의 원본 파일들
 tests/trap/
 
 # 원본 mf.web을 weave/tex로 조판해 본 것
