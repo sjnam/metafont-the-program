@@ -27189,7 +27189,7 @@ func doShowVar() {
 }
 
 @ \KW{showdependencies}는 지금의 모든 종속 관계를 보인다. 함수 |interesting|으로 걸러 내므로 캡슐
-같은 것은 |tracingcapsules|가 양수일 때만 나타난다. 원형 종속은 `\.{ = }'처럼 등호 둘레에 빈칸을 더 두어 구별한다.
+같은 것은 |tracingCapsules|가 양수일 때만 나타난다. 원형 종속은 `\.{ = }'처럼 등호 둘레에 빈칸을 더 두어 구별한다.
 
 @<함수들@>=
 func doShowDependencies() {
