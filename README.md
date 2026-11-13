@@ -16,7 +16,7 @@
 - 그림은 MetaPost로 그려 문서에 바로 넣었다(luamplib). 존 호비의 조절점 고르기, 드 카스텔조 나누기와
   룩 움직임, 가장자리 구조, 팔분면, 다각형 펜과 포락선, 타원 펜, 교차 시각, 변수의 자료 구조,
   `pencircle`의 타원 복원, `subpath` 자르기, `doublepath`, TFM 치수 합치기(`skimp`), GF 부호화 따위다.
-- 같은 `mf.w`에서 사람이 읽을 문서(`mf.pdf`, 약 850쪽)와 실제로 돌아가는 프로그램(`build/mf`)이
+- 같은 `mf.w`에서 사람이 읽을 문서(`mf.pdf`, 약 900쪽)와 실제로 돌아가는 프로그램(`build/mf`)이
   함께 나온다. 이 프로그램은 진짜 METAFONT와 같은 TFM과 GF를 만들고, 커누스의 TRAP 테스트를 통과한다.
 
 ## 파일
@@ -27,6 +27,8 @@
 | `Makefile` | 빌드, 조판, 테스트 |
 | `mf-deco.ch` | 쪽마다 액자를 두르는 바꿈 파일(`make deco`) |
 | `decoframe.pdf` | `mf-deco.ch`가 쪽마다 까는 액자 그림 |
+| `mf.bux` | 미니 색인판(`make twill`)에서 `mf.w`의 선언으로는 알 수 없는 이름들에 주는 뜻 |
+| `lion.pdf` | 1절 끝, 그 쪽의 바닥에 붙이는 사자 그림 |
 | `go.mod` | Go 모듈 정의 |
 | `tests/trap.sh` | TRAP 테스트 |
 | `tests/compare.sh` | 글꼴 몇 개를 진짜 METAFONT와 함께 만들어 TFM, GF, 기록 파일을 비교한다 |
@@ -50,10 +52,19 @@
 만든 절은 빠져 있다. 마지막 부인 찾아보기에서는 식별자와 오류 메시지가 쓰인 모든 절을 찾을 수 있고,
 ``bugs'' 항목에는 이 번역에서 찾은 원본의 문제들이 모여 있다.
 
+같은 `mf.w`로 모양이 다른 판을 세 가지 더 만들 수 있다. 어느 것을 만들어도 `mf.pdf`는 그대로다.
+
+- `make deco`(`mf-deco.pdf`): 바꿈 파일 `mf-deco.ch`로 쪽마다 액자(`decoframe.pdf`)를 두른다.
+- `make twill`(`mf-twill.pdf`): 커누스가 TWILL로 *TeX: The Program*을 찍은 방식을 따라, 펼친 두 쪽마다
+  그 쪽에 나오는 식별자가 어디서 정의되었는지 알려 주는 미니 색인을 붙인다. gweave 대신
+  [gtwill](https://github.com/sjnam/gtwill)로 조판하고, 선언에서 읽어 낼 수 없는 이름의 뜻은
+  `mf.bux`에서 얻는다. `mf.bux`의 절 번호는 `mf.w`의 절이 늘거나 줄면 함께 고쳐야 한다.
+- `make twill-deco`(`mf-twill-deco.pdf`): 미니 색인과 액자를 함께 붙인다.
+
 ### 어디서부터 읽을까
 
-커누스는 처음부터 차례로 읽기를 권한다. 앞부분에서 만든 도구를 뒤에서 쓰기 때문이다. 1절 끝의
-지도 그림이 전체의 흐름을 보여 준다. 처음 읽는다면 다음 순서가 무난하다.
+커누스는 처음부터 차례로 읽기를 권한다. 앞부분에서 만든 도구를 뒤에서 쓰기 때문이다. 6절의
+지도 그림(그림 1)이 전체의 흐름을 보여 준다. 처음 읽는다면 다음 순서가 무난하다.
 
 1. **기초 (1–8부)**: 문자 집합, 입출력, 문자열 풀, 오류 처리, 그리고 METAFONT의 모든 계산의 바탕인
    고정 소수점 산술. `scaled`(2^-16)와 `fraction`(2^-28)과 `angle`(2^-20도), 넘침 없이 곱하고 나누는
@@ -105,15 +116,22 @@
 - 테스트에는 `mf-nowin`, `gftype`, `tftopl`(TeX Live에 들어 있다), `curl`, `perl`도 쓴다
 - [qpdf](https://qpdf.sourceforge.io/): gweave가 문서 맨 끝에 두는 차례를 맨 앞으로 옮긴다
 - `make check`에는 `python3`를 쓰고, 있으면 `pdftotext`(poppler)도 쓴다
+- `make twill`에는 [gtwill](https://github.com/sjnam/gtwill)과 `gtwill-refsort`, 매크로 `gtwimac.tex`를
+  쓴다(gtwill 저장소에서 `make install`)
 
 ```sh
 make            # build/mf와 mf.pdf를 만든다
 make build      # 프로그램만: mf.w → mf.go(gtangle) → build/mf(go build)
 make pdf        # 문서만: mf.w → mf.tex(gweave) → mf.pdf(luatex 두 번, qpdf로 차례를 맨 앞에)
 make check      # 조판 경고(Overfull, Underfull 따위)와 조용히 깨진 조판의 수를 센다. 둘 다 0이어야 한다
-make test       # make compare와 make trap(아래 테스트)을 함께 돌린다
+make base       # build/plain.base를 만든다(INIMF로 plain.mf를 읽고 dump, 아래 실행)
+make compare    # 글꼴 몇 개를 진짜 METAFONT(mf-nowin)로 만든 것과 비교한다(아래 테스트)
+make trap       # 커누스의 TRAP 테스트를 돌린다(아래 테스트)
+make test       # make compare와 make trap을 함께 돌린다
 make deco       # 쪽마다 액자를 두른 판: mf.w + mf-deco.ch → mf-deco.pdf(mf.pdf는 그대로 둔다)
-make clean
+make twill      # 쪽마다 미니 색인을 붙인 판: mf.w + mf.bux → mf-twill.pdf(gtwill, luatex 세 번)
+make twill-deco # 미니 색인과 액자를 함께 붙인 판: mf-twill-deco.pdf
+make clean      # 만든 것을 모두 지운다
 ```
 
 ## 실행
