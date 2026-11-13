@@ -86,7 +86,7 @@ enddef;
   \vskip 15pt
   \centerline{도널드 크누스의 \MF\ 프로그램을 한글 \.{GWEB}으로 옮김}
   \vfill}
-\def\botofcontents{\vfill
+\def\botofcontents{\par\vskip 0pt plus 1filll
   \ninepoint\baselineskip12pt
   \noindent 원본 \copyright\ 1984 Donald E. Knuth
   \bigskip\noindent
