@@ -1,5 +1,5 @@
 #!/bin/sh
-# TRAP 테스트를 돌린다. 크누스의 trapman.tex 부록 A의 절차를 따른다.
+# TRAP 테스트를 돌린다. 커누스의 trapman.tex 부록 A의 절차를 따른다.
 #
 #   tests/trap.sh            요약만 찍는다
 #   tests/trap.sh -v         원본 결과와의 차이를 모두 찍는다
@@ -9,7 +9,7 @@
 set -e
 
 TOP=$(cd "$(dirname "$0")/.." && pwd)
-DIST=$TOP/tests/trap                 # 크누스가 배포한 원본 파일들
+DIST=$TOP/tests/trap                 # 커누스가 배포한 원본 파일들
 WORK=$TOP/build/trap                 # 테스트를 돌리는 곳
 CTAN=https://mirrors.ctan.org/systems/knuth/dist/mf
 FILES="trap.mf trap.pl trapin.log trapin.fot trap.log trap.fot trap.typ trap.72270gf trapman.tex"

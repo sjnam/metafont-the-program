@@ -6,7 +6,7 @@
 #   make check      mf.pdf의 조판 경고와 조용히 깨진 조판을 센다(둘 다 0이어야 한다)
 #   make base       build/plain.base를 만든다(INIMF로 plain.mf를 읽고 dump)
 #   make compare    글꼴 몇 개를 진짜 METAFONT(mf-nowin)로 만든 것과 비교한다
-#   make trap       크누스의 TRAP 테스트를 돌린다
+#   make trap       커누스의 TRAP 테스트를 돌린다
 #   make test       compare와 trap을 모두 돌린다
 #   make clean      만든 것을 모두 지운다
 #   make deco       테두리에 액자를 두른 문서(mf-deco.pdf)를 만든다
@@ -78,7 +78,7 @@ mf-deco.pdf: mf.w mf-deco.ch decoframe.pdf
 
 deco: mf-deco.pdf
 
-# 미니 색인을 붙인 판은 크누스가 TWILL로 TeX: The Program을 찍은 방식을 따른다. 도구는
+# 미니 색인을 붙인 판은 커누스가 TWILL로 TeX: The Program을 찍은 방식을 따른다. 도구는
 # gtwill(https://github.com/sjnam/gtwill)이고, 미니 색인을 정렬하는 gtwill-refsort와
 # 매크로 gtwimac.tex가 함께 깔려 있어야 한다(gtwill 저장소에서 make install).
 # 도구 gtwill이 gweave 자리에 들어가고, luatex는 세 번 돈다. 첫 번째는 \secref가 쓰는
