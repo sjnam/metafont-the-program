@@ -2,7 +2,7 @@
 
 도널드 커누스(Donald E. Knuth)의 글꼴 설계 프로그램 METAFONT의 문학적 프로그램 `mf.web`(판 2.71828182)을
 한글과 Go로 옮긴 것이다. 원본은 영어 설명과 Pascal 코드로 되어 있는데, 이 번역은 설명을 한글로,
-코드를 Go로 바꾸어 GWEB(Go로 쓰는 WEB)의 `.w` 파일 하나(`mf.w`)에 담았다.
+코드를 Go로 바꾸어 GWEB(Go로 쓰는 WEB)의 `.gw` 파일 하나(`mf.gw`)에 담았다.
 같은 방식으로 옮긴 TeX(`tex-the-program`)의 짝이다.
 
 옮긴 목적은 METAFONT의 알고리즘들과 동작 원리를 온전히 이해하는 것이다. 그래서 원본에 될 수 있는 대로
@@ -16,18 +16,18 @@
 - 그림은 MetaPost로 그려 문서에 바로 넣었다(luamplib). 존 호비의 조절점 고르기, 드 카스텔조 나누기와
   룩 움직임, 가장자리 구조, 팔분면, 다각형 펜과 포락선, 타원 펜, 교차 시각, 변수의 자료 구조,
   `pencircle`의 타원 복원, `subpath` 자르기, `doublepath`, TFM 치수 합치기(`skimp`), GF 부호화 따위다.
-- 같은 `mf.w`에서 사람이 읽을 문서(`mf.pdf`, 약 900쪽)와 실제로 돌아가는 프로그램(`build/mf`)이
+- 같은 `mf.gw`에서 사람이 읽을 문서(`mf.pdf`, 약 900쪽)와 실제로 돌아가는 프로그램(`build/mf`)이
   함께 나온다. 이 프로그램은 진짜 METAFONT와 같은 TFM과 GF를 만들고, 커누스의 TRAP 테스트를 통과한다.
 
 ## 파일
 
 | 파일 | 내용 |
 | --- | --- |
-| `mf.w` | 번역 본문. 모든 것이 여기서 나온다 |
+| `mf.gw` | 번역 본문. 모든 것이 여기서 나온다 |
 | `Makefile` | 빌드, 조판, 테스트 |
 | `mf-deco.ch` | 쪽마다 액자를 두르는 바꿈 파일(`make deco`) |
 | `decoframe.pdf` | `mf-deco.ch`가 쪽마다 까는 액자 그림 |
-| `mf.bux` | 미니 색인판(`make twill`)에서 `mf.w`의 선언으로는 알 수 없는 이름들에 주는 뜻 |
+| `mf.bux` | 미니 색인판(`make twill`)에서 `mf.gw`의 선언으로는 알 수 없는 이름들에 주는 뜻 |
 | `metalion.pdf` | 1절 끝, 그 쪽의 바닥에 붙이는 사자 그림 |
 | `go.mod` | Go 모듈 정의 |
 | `tests/trap.sh` | TRAP 테스트 |
@@ -52,13 +52,13 @@
 만든 절은 빠져 있다. 마지막 부인 찾아보기에서는 식별자와 오류 메시지가 쓰인 모든 절을 찾을 수 있고,
 ``bugs'' 항목에는 이 번역에서 찾은 원본의 문제들이 모여 있다.
 
-같은 `mf.w`로 모양이 다른 판을 세 가지 더 만들 수 있다. 어느 것을 만들어도 `mf.pdf`는 그대로다.
+같은 `mf.gw`로 모양이 다른 판을 세 가지 더 만들 수 있다. 어느 것을 만들어도 `mf.pdf`는 그대로다.
 
 - `make deco`(`mf-deco.pdf`): 바꿈 파일 `mf-deco.ch`로 쪽마다 액자(`decoframe.pdf`)를 두른다.
 - `make twill`(`mf-twill.pdf`): 커누스가 TWILL로 *TeX: The Program*을 찍은 방식을 따라, 펼친 두 쪽마다
   그 쪽에 나오는 식별자가 어디서 정의되었는지 알려 주는 미니 색인을 붙인다. gweave 대신
   [gtwill](https://github.com/sjnam/gtwill)로 조판하고, 선언에서 읽어 낼 수 없는 이름의 뜻은
-  `mf.bux`에서 얻는다. `mf.bux`의 절 번호는 `mf.w`의 절이 늘거나 줄면 함께 고쳐야 한다.
+  `mf.bux`에서 얻는다. `mf.bux`의 절 번호는 `mf.gw`의 절이 늘거나 줄면 함께 고쳐야 한다.
 - `make twill-deco`(`mf-twill-deco.pdf`): 미니 색인과 액자를 함께 붙인다.
 
 ### 어디서부터 읽을까
@@ -121,15 +121,15 @@
 
 ```sh
 make            # build/mf와 mf.pdf를 만든다
-make build      # 프로그램만: mf.w → mf.go(gtangle) → build/mf(go build)
-make pdf        # 문서만: mf.w → mf.tex(gweave) → mf.pdf(luatex 두 번, qpdf로 차례를 맨 앞에)
+make build      # 프로그램만: mf.gw → mf.go(gtangle) → build/mf(go build)
+make pdf        # 문서만: mf.gw → mf.tex(gweave) → mf.pdf(luatex 두 번, qpdf로 차례를 맨 앞에)
 make check      # 조판 경고(Overfull, Underfull 따위)와 조용히 깨진 조판의 수를 센다. 둘 다 0이어야 한다
 make base       # build/plain.base를 만든다(INIMF로 plain.mf를 읽고 dump, 아래 실행)
 make compare    # 글꼴 몇 개를 진짜 METAFONT(mf-nowin)로 만든 것과 비교한다(아래 테스트)
 make trap       # 커누스의 TRAP 테스트를 돌린다(아래 테스트)
 make test       # make compare와 make trap을 함께 돌린다
-make deco       # 쪽마다 액자를 두른 판: mf.w + mf-deco.ch → mf-deco.pdf(mf.pdf는 그대로 둔다)
-make twill      # 쪽마다 미니 색인을 붙인 판: mf.w + mf.bux → mf-twill.pdf(gtwill, luatex 세 번)
+make deco       # 쪽마다 액자를 두른 판: mf.gw + mf-deco.ch → mf-deco.pdf(mf.pdf는 그대로 둔다)
+make twill      # 쪽마다 미니 색인을 붙인 판: mf.gw + mf.bux → mf-twill.pdf(gtwill, luatex 세 번)
 make twill-deco # 미니 색인과 액자를 함께 붙인 판: mf-twill-deco.pdf
 make clean      # 만든 것을 모두 지운다
 ```
@@ -198,7 +198,7 @@ TRAP은 커누스가 METAFONT의 구현을 검증하려고 만든 "고문 테스
 2. trapman이 요구하는 상수로 테스트용 INIMF를 만든다. `memTop=memMax=3000`, `errorLine=64`,
    `halfErrorLine=32`, `maxPrintLine=72`, `screenWidth=100`, `screenDepth=200`, `gfBufSize=8`이고,
    키워 둔 `bufSize`, `fileNameSize`, 하프워드는 처음 값으로 되돌린다. `debug`를 켜고, 화면 루틴이
-   기록 파일에 쓰도록 `initScreen`이 참을 돌려주게 한다. `mf.w`에서 뽑은 `mf.go`만 바꾸므로 `mf.w`는
+   기록 파일에 쓰도록 `initScreen`이 참을 돌려주게 한다. `mf.gw`에서 뽑은 `mf.go`만 바꾸므로 `mf.gw`는
    건드리지 않는다.
 3. 첫 실행(`\input trap`)으로 `trapin.log`를 만들고, 둘째 실행(` &trap  trap `)으로 `trap.log`,
    `trap.72270gf`, `trap.tfm`을 만든다.
@@ -219,7 +219,7 @@ GF도 같은 `gftype`으로 풀어서 비교한다.
 ## 저작권과 이름
 
 원본 `mf.web`의 저작권은 커누스에게 있다(1984). 원본 머리말은 원본을 고치는 것을 허락하되,
-고친 파일의 이름이 `mf.web`이 아니어야 한다고 정해 두었다. 이 번역은 `mf.w`라는 별개의 파일이다.
+고친 파일의 이름이 `mf.web`이 아니어야 한다고 정해 두었다. 이 번역은 `mf.gw`라는 별개의 파일이다.
 TeX은 미국 수학회의 상표이고, METAFONT는 Addison-Wesley 출판사의 상표다.
 
 원본 §2는 프로그램을 고치면 어느 판인지 알 수 있도록 배너를 바꾸라고 하고, 고친 시스템은 그냥

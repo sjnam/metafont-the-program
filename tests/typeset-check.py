@@ -3,10 +3,10 @@
 # make check가 따로 센다(빠진 글자도 plain TeX이 ``Missing character''로 남기므로
 # 거기서 잡힌다). 여기서 보는 것은 다음 다섯 가지다.
 #
-#   1. mf.w: \.{...}나 \.X 안의 \' \` \" \= 따위. webmac과 달리 gwebmac의 \.은
+#   1. mf.gw: \.{...}나 \.X 안의 \' \` \" \= 따위. webmac과 달리 gwebmac의 \.은
 #      이것들을 문자로 바꾸지 않으므로 plain TeX의 악센트가 되어 버린다.
 #      작은따옴표와 역따옴표는 \char'47과 \char'140으로 쓴다.
-#   2. mf.w: webmac에만 있던 한 글자 매크로 \L(<=), \G(>=), \I(!=), \K, \R, \V.
+#   2. mf.gw: webmac에만 있던 한 글자 매크로 \L(<=), \G(>=), \I(!=), \K, \R, \V.
 #      plain TeX에서는 \L이 폴란드 문자 Ł가 되는 식으로 엉뚱하게 찍힌다.
 #   3. mf.tex: gweave가 잘못 끊은 수 토큰. 이를테면 |0..poolSize|는 \NU{0..poo}와
 #      \ID{lSize}로 끊긴다. 숫자와 ..을 띄어 |0 .. poolSize|로 쓴다.
@@ -35,8 +35,8 @@ def report(where, what):
     found.append(f"{where}: {what}")
 
 
-# 1과 2: mf.w. 역빗금 문자 \\는 미리 지워 \\b 같은 것에 속지 않게 한다.
-src = open("mf.w", encoding="utf-8").read().split("\n")
+# 1과 2: mf.gw. 역빗금 문자 \\는 미리 지워 \\b 같은 것에 속지 않게 한다.
+src = open("mf.gw", encoding="utf-8").read().split("\n")
 accent = re.compile(r"\\[`'\"=]|\\[uvHtcdb](?![A-Za-z])")
 webmac = re.compile(r"\\([LGIKRV])(?![A-Za-z])")
 dot_arg = re.compile(r"\\\.(\{(?:[^{}]|\{[^{}]*\})*\}|\\.|.)")
@@ -46,11 +46,11 @@ for n, line in enumerate(src, 1):
     plain = line.replace("\\\\", "")
     for m in dot_arg.finditer(plain):
         if accent.search(m.group(1)):
-            report(f"mf.w:{n}", f"\\. 안의 악센트 매크로: {m.group(0)}")
+            report(f"mf.gw:{n}", f"\\. 안의 악센트 매크로: {m.group(0)}")
     code = line.lstrip().startswith(("\\def", "\\let"))
     for m in webmac.finditer(plain):
         if not code:
-            report(f"mf.w:{n}", f"webmac에만 있던 매크로 \\{m.group(1)}")
+            report(f"mf.gw:{n}", f"webmac에만 있던 매크로 \\{m.group(1)}")
 
 # 3: mf.tex의 수 토큰
 number = re.compile(
