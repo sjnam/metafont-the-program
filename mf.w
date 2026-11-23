@@ -6864,7 +6864,7 @@ label.top(btex $p$ etex, northof(nd1)); label.lft(btex $q$ etex, westof(nd2));
 label.ulft(btex $q_1$ etex, ulcorner bbox nd3); label.top(btex $q_2$ etex, northof(nd4));
 label.lft(btex $qq$ etex, westof(nd6)); label.top(btex $qq_1$ etex, northof(nd7));
 label.top(btex $qq_2$ etex, northof(nd8));
-label.top(btex $r$ etex, northof(nd9)); label.urt(btex $r_1$ etex, urcorner bbox nd10);
+label.top(btex $r$ etex, northof(nd9)); label.rt(btex $r_1$ etex, eastof(nd10));
 label.lft(btex $qqq$ etex, westof(nd11)); label.top(btex $qqq_1$ etex, northof(nd12));
 label.top(btex $qqq_2$ etex, northof(nd13));
 % link
@@ -6878,12 +6878,19 @@ drawarrow eastof(nd9)--westof(nd10);
 drawarrow eastof(nd11)--westof(nd12);
 drawarrow eastof(nd12)--westof(nd13);
 drawarrow eastof(nd13){right}..(4u,-3v)..{up}(southof(nd5)+(4pt,0));
-% r1 -> q1
-drawarrow (northof(nd10)+(10pt,0)){up}..{up}(southof(nd3)+(10pt,0));
-% attrHead
-drawarrow southof(nd1)--northof(nd2) withpen pencircle scaled 1.2pt;
-drawarrow southof(nd3)--northof(nd6) withpen pencircle scaled 1.2pt;
-drawarrow southof(nd10)--northof(nd11) withpen pencircle scaled 1.2pt;
+% r1 -> q1: qq 상자를 뚫지 않도록 qq와 qq1 사이의 틈으로 돌아간다
+drawarrow (northof(nd10)+(10pt,0))
+  ..(.5[xpart lrcorner bbox nd6, xpart llcorner bbox nd7], ypart center nd6)
+  ..(southof(nd3)+(10pt,0));
+% attrHead: 굵은 펜은 경로의 양 끝 밖으로 반지름(.6pt)만큼 튀어나오므로, 양 끝을
+% 그만큼에 상자 테두리 굵기의 절반(.25bp)을 더해 당긴다. 그러면 꼬리도 촉도 상자에 들지 않는다.
+vardef attrarrow(expr a, b) =
+  save d; d := .6pt + .25bp;
+  drawarrow (a - (0,d))--(b + (0,d)) withpen pencircle scaled 1.2pt
+enddef;
+attrarrow(southof(nd1), northof(nd2));
+attrarrow(southof(nd3), northof(nd6));
+attrarrow(southof(nd10), northof(nd11));
 % subscrHead
 drawarrow westof(nd1){left}..{down}(-.5u,-2v)..{right}westof(nd9) dashed withdots scaled .6;
 drawarrow (southof(nd3)+(-10pt,0)){down}..(westof(nd6)-(8pt,0))..(southof(nd6)-(0,7pt))
