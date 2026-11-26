@@ -1,8 +1,8 @@
-# 한글 GWEB으로 옮긴 METAFONT (mf.w)
+# 한글 GWEB으로 옮긴 METAFONT (mf.gw)
 #
 #   make            프로그램(build/mf)과 문서(mf.pdf)를 만든다
-#   make build      mf.w에서 Go 소스를 뽑아(gtangle) build/mf를 만든다
-#   make pdf        mf.w를 조판해(gweave, luatex 두 번) mf.pdf를 만든다
+#   make build      mf.gw에서 Go 소스를 뽑아(gtangle) build/mf를 만든다
+#   make pdf        mf.gw를 조판해(gweave, luatex 두 번) mf.pdf를 만든다
 #   make check      mf.pdf의 조판 경고와 조용히 깨진 조판을 센다(둘 다 0이어야 한다)
 #   make base       build/plain.base를 만든다(INIMF로 plain.mf를 읽고 dump)
 #   make compare    글꼴 몇 개를 진짜 METAFONT(mf-nowin)로 만든 것과 비교한다
@@ -24,8 +24,8 @@ BUILD = build
 
 all: build pdf
 
-mf.go: mf.w
-	gtangle mf.w
+mf.go: mf.gw
+	gtangle mf.gw
 
 # default.pgo가 있으면 go build가 저절로 그것으로 프로파일 기반 최적화를 한다
 $(BUILD)/mf: mf.go go.mod $(wildcard default.pgo)
@@ -36,11 +36,11 @@ build: $(BUILD)/mf
 
 # 절 번호 참조(\secref)를 맞추려면 luatex를 두 번 돌려야 한다.
 # gweave는 차례를 맨 끝에 두므로, qpdf로 차례를 맨 앞으로 옮긴다. 차례가 몇 쪽인지는
-# mf.w의 \topofcontents가 로그에 적어 둔 "TOC begins after page B"로 안다:
+# mf.gw의 \topofcontents가 로그에 적어 둔 "TOC begins after page B"로 안다:
 # B+1쪽부터 끝까지가 차례다.
 # $(1)은 조판할 .tex 파일의 이름(곧 \jobname), $(2)는 바꿈 파일이다.
 define weave
-	$(if $(2),mkdir -p $(BUILD) && gweave -o $(BUILD) mf.w $(2) && mv $(BUILD)/mf.tex $(1).tex,gweave mf.w)
+	$(if $(2),mkdir -p $(BUILD) && gweave -o $(BUILD) mf.gw $(2) && mv $(BUILD)/mf.tex $(1).tex,gweave mf.gw)
 	luatex --interaction=nonstopmode $(1).tex >/dev/null
 	luatex --interaction=nonstopmode $(1).tex >/dev/null
 	$(call movetoc,$(1))
@@ -55,7 +55,7 @@ define movetoc
 	mv $(1)-toc.pdf $(1).pdf
 endef
 
-mf.pdf: mf.w lion.pdf
+mf.pdf: mf.gw lion.pdf
 	$(call weave,mf)
 
 pdf: mf.pdf
@@ -88,15 +88,16 @@ regress: $(BUILD)/mf trap
 pgo: mf.go
 	tests/pgo.sh
 
-# 차등 퍼징의 기준: 기준 판의 mf.w로 만든 METAFONT. 기준마다 디렉터리를 따로 두므로 BASE를
+# 차등 퍼징의 기준: 기준 판의 mf.gw로 만든 METAFONT. 이름을 바꾸기 전의 판(꼬리표 faithful)에는
+# mf.w로 있으므로 그것을 mf.gw로 꺼낸다. 기준마다 디렉터리를 따로 두므로 BASE를
 # 바꾸면 새로 만든다. 가지 이름을 주었다면 그 가지가 움직여도 저절로 다시 만들지는 않으니
 # build/ref-가지이름을 지운다.
 REF = $(BUILD)/ref-$(BASE)
 $(REF)/mf:
 	@mkdir -p $(REF)
-	git show $(BASE):mf.w > $(REF)/mf.w
+	git show $(BASE):mf.gw > $(REF)/mf.gw 2>/dev/null || git show $(BASE):mf.w > $(REF)/mf.gw
 	cp go.mod $(REF)/
-	cd $(REF) && gtangle mf.w >/dev/null && go build -o mf .
+	cd $(REF) && gtangle mf.gw >/dev/null && go build -o mf .
 
 FUZZTIME = 1m
 fuzz: $(BUILD)/mf $(REF)/mf
@@ -130,7 +131,7 @@ uninstall:
 	rm -rf $(MFDIR)
 
 # 액자를 두른 판은 mf-deco.pdf로 따로 만들어 mf.pdf를 건드리지 않는다
-mf-deco.pdf: mf.w mf-deco.ch lion.pdf decoframe.pdf
+mf-deco.pdf: mf.gw mf-deco.ch lion.pdf decoframe.pdf
 	$(call weave,mf-deco,mf-deco.ch)
 
 deco: mf-deco.pdf
@@ -147,7 +148,7 @@ GTWILL ?= gtwill
 GTWILL_REFSORT ?= gtwill-refsort
 
 define twill
-	mkdir -p $(BUILD) && $(GTWILL) -o $(BUILD) mf.w $(2) && mv $(BUILD)/mf.tex $(1).tex
+	mkdir -p $(BUILD) && $(GTWILL) -o $(BUILD) mf.gw $(2) && mv $(BUILD)/mf.tex $(1).tex
 	rm -f $(1).smref
 	luatex --interaction=nonstopmode $(1).tex >/dev/null
 	luatex --interaction=nonstopmode $(1).tex >/dev/null
@@ -157,13 +158,13 @@ define twill
 	$(call movetoc,$(1))
 endef
 
-mf-twill.pdf: mf.w mf.bux lion.pdf
+mf-twill.pdf: mf.gw mf.bux lion.pdf
 	$(call twill,mf-twill)
 
 twill: mf-twill.pdf
 
 # 액자도 두르려면 mf-deco.ch를 그대로 쓴다. 거기서 \twillbackground를 \FrameBG로 둔다.
-mf-twill-deco.pdf: mf.w mf.bux mf-deco.ch lion.pdf decoframe.pdf
+mf-twill-deco.pdf: mf.gw mf.bux mf-deco.ch lion.pdf decoframe.pdf
 	$(call twill,mf-twill-deco,mf-deco.ch)
 
 twill-deco: mf-twill-deco.pdf

@@ -26,8 +26,8 @@ cp "$DIST/trap.mf" .
 # 1. 테스트용 INIMF를 만든다. trapman의 지시대로 상수 몇 개를 바꾸고, debug 코드를 켜고,
 #    화면 루틴이 화면 대신 기록 파일에 쓰도록 initScreen이 true를 돌려주게 한다.
 #    키워 둔 bufSize, fileNameSize, 하프워드는 mf.web의 처음 값으로 되돌린다.
-cp "$TOP/mf.w" "$TOP/go.mod" .
-gtangle mf.w >/dev/null 2>&1
+cp "$TOP/mf.gw" "$TOP/go.mod" .
+gtangle mf.gw >/dev/null 2>&1
 perl -0pi -e '
   s/(\n\tmemMax\s*=\s*)1000000/${1}3000/       or die "memMax";
   s/(\n\tmemTop\s*=\s*)1000000/${1}3000/       or die "memTop";

@@ -31,13 +31,15 @@ REF=$W/ref/mf
 FONTS="cmr10 cmbx12 cmti10 cmmi10 cmsy10 cmex10 cmtt10 cmss10 cmcsc10 cmfib8 logo10"
 TRAPFILES="trapin.log trapin.fot trap.log trap.fot trap.typ trap.pl trap.72270gf"
 
-# 1. 기준 판의 mf.w로 기준 METAFONT와 기준 TRAP 결과를 만든다
+# 1. 기준 판의 mf.gw로 기준 METAFONT와 기준 TRAP 결과를 만든다. 이름을 바꾸기 전의 판(꼬리표
+#    faithful)에는 mf.w로 있고 그 판의 trap.sh도 그 이름을 찾으므로, 이름을 그대로 둔다.
 rm -rf "$W"; mkdir -p "$W/ref/tests"
-git -C "$TOP" show "$BASE:mf.w" > "$W/ref/mf.w"
+web=mf.gw; git -C "$TOP" cat-file -e "$BASE:$web" 2>/dev/null || web=mf.w
+git -C "$TOP" show "$BASE:$web" > "$W/ref/$web"
 git -C "$TOP" show "$BASE:tests/trap.sh" > "$W/ref/tests/trap.sh"; chmod +x "$W/ref/tests/trap.sh"
 cp "$TOP/go.mod" "$W/ref/"
 cp -r "$TOP/tests/trap" "$W/ref/tests/"
-(cd "$W/ref" && gtangle mf.w >/dev/null 2>&1 && go build -o mf . && tests/trap.sh >/dev/null 2>&1)
+(cd "$W/ref" && gtangle $web >/dev/null 2>&1 && go build -o mf . && tests/trap.sh >/dev/null 2>&1)
 
 bad=0
 same() { # $1: 이름, $2 $3: 견줄 두 파일
