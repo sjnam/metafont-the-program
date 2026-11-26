@@ -2,7 +2,7 @@
 # Go 컴파일러의 프로파일 기반 최적화(PGO)에 쓸 default.pgo를 만든다.
 # INIMF로 plain 기반을 만들 때와, 글꼴 열 개를 한 작업에서 세 번씩 잇달아 읽어
 # 4007자를 만드는 벤치마크(tests/regress.sh의 big)를 돌릴 때의 CPU 프로파일을 합친다.
-# 꾸러미 디렉터리에 default.pgo가 있으면 go build가 저절로 그것을 쓴다.
+# 패키지 디렉터리에 default.pgo가 있으면 go build가 저절로 그것을 쓴다.
 #
 #   tests/pgo.sh
 #
