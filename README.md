@@ -178,10 +178,12 @@ tests/compare.sh cmr10      # 주어진 글꼴만
 ```
 
 이 번역과 TeX Live의 `mf-nowin`이 각자 plain 기반을 만든다. 그 기반으로 같은 글꼴을 200dpi와
-600dpi(`mode=lowres`에 `mag=1`과 `mag=3`)로 만든 다음, TFM은 바이트 단위로, GF는 `gftype`으로 풀어서,
-기록 파일은 첫 줄(배너와 날짜)을 빼고 비교한다. 기본으로 비교하는 글꼴 11개(`cmr10`, `cmbx12`, `cmti10`,
-`cmmi10`, `cmsy10`, `cmex10`, `cmtt10`, `cmss10`, `cmcsc10`, `cmfib8`, `logo10`)는 두 해상도 모두 결과가
-진짜 METAFONT의 것과 같다.
+600dpi(`mode=lowres`에 `mag=1`과 `mag=3`)로 만든 다음, TFM과 GF는 바이트 단위로, 기록 파일은 첫
+줄(배너)을 빼고 비교한다. 이 번역은 원본의 `fix_date_and_time`처럼 늘 1776년 7월 4일 정오를 날짜로
+쓰므로, `mf-nowin`에도 TeX Live의 `SOURCE_DATE_EPOCH`와 `FORCE_SOURCE_DATE=1`로 같은 날짜를 준다. 그래서
+GF 서문의 날짜 주석까지 같아야 한다. 기본으로 비교하는 글꼴 11개(Computer Modern의 `cmr10`, `cmbx12`,
+`cmti10`, `cmmi10`, `cmsy10`, `cmex10`, `cmtt10`, `cmss10`, `cmcsc10`, `cmfib8`과 METAFONT 로고 글꼴
+`logo10`)는 두 해상도 모두 결과가 진짜 METAFONT의 것과 바이트까지 같다.
 
 ### TRAP 테스트
 
