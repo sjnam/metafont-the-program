@@ -135,7 +135,7 @@ enddef;
 @:METAFONTbook}{\sl The {\logos METAFONT\/}book@>
 
 \par\vskip 0pt plus 1filll\noindent % gtwill이 왼쪽 쪽 끝에 덧붙이는 \vfill보다 차수가 높아야 사자가 바닥에 붙는다
-\saveimageresource height 1.5in {lion.pdf}\useimageresource\lastsavedimageresourceindex
+\saveimageresource height 1.5in {metalion.pdf}\useimageresource\lastsavedimageresourceindex
 @ \seclabel{go-native}이 판은 실험이다. 원본 \.{mf.web}은 이식성을 무엇보다 앞세워,
 어느 언어로든 쉽게 옮길 수 있도록 웬만한 고급 언어에 다 있는 기능만 썼다. 이 번역도 처음에는 그
 뜻을 따랐고, 그렇게 옮긴 판은 지금도 \.{main} 가지에 있다. 나는 \.{go-native}라는 가지에서 그

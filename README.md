@@ -32,7 +32,7 @@
 | `mf-deco.ch` | 쪽마다 액자를 두르는 바꿈 파일(`make deco`) |
 | `decoframe.pdf` | `mf-deco.ch`가 쪽마다 까는 액자 그림 |
 | `mf.bux` | 미니 색인판(`make twill`)에서 `mf.gw`의 선언으로는 알 수 없는 이름들에 주는 뜻 |
-| `lion.pdf` | 1절 끝, 그 쪽의 바닥에 붙이는 사자 그림 |
+| `metalion.pdf` | 1절 끝, 그 쪽의 바닥에 붙이는 사자 그림 |
 | `go.mod` | Go 모듈 정의 |
 | `tests/trap.sh` | TRAP 테스트 |
 | `tests/compare.sh` | 글꼴 몇 개를 진짜 METAFONT와 함께 만들어 TFM, GF, 기록 파일을 비교한다 |

@@ -55,7 +55,7 @@ define movetoc
 	mv $(1)-toc.pdf $(1).pdf
 endef
 
-mf.pdf: mf.gw lion.pdf
+mf.pdf: mf.gw metalion.pdf
 	$(call weave,mf)
 
 pdf: mf.pdf
@@ -131,7 +131,7 @@ uninstall:
 	rm -rf $(MFDIR)
 
 # 액자를 두른 판은 mf-deco.pdf로 따로 만들어 mf.pdf를 건드리지 않는다
-mf-deco.pdf: mf.gw mf-deco.ch lion.pdf decoframe.pdf
+mf-deco.pdf: mf.gw mf-deco.ch metalion.pdf decoframe.pdf
 	$(call weave,mf-deco,mf-deco.ch)
 
 deco: mf-deco.pdf
@@ -158,13 +158,13 @@ define twill
 	$(call movetoc,$(1))
 endef
 
-mf-twill.pdf: mf.gw mf.bux lion.pdf
+mf-twill.pdf: mf.gw mf.bux metalion.pdf
 	$(call twill,mf-twill)
 
 twill: mf-twill.pdf
 
 # 액자도 두르려면 mf-deco.ch를 그대로 쓴다. 거기서 \twillbackground를 \FrameBG로 둔다.
-mf-twill-deco.pdf: mf.gw mf.bux mf-deco.ch lion.pdf decoframe.pdf
+mf-twill-deco.pdf: mf.gw mf.bux mf-deco.ch metalion.pdf decoframe.pdf
 	$(call twill,mf-twill-deco,mf-deco.ch)
 
 twill-deco: mf-twill-deco.pdf
