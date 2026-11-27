@@ -37,6 +37,7 @@ mf-twill-deco.smref
 # make figures: 그림 모음
 mf-figures.tex
 mf-figures.log
+mf-figures.pdf
 mf-figures.ref
 
 .DS_Store

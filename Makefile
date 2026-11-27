@@ -82,7 +82,6 @@ deco: mf-deco.pdf
 # 그림 모음은 mf.gw의 그림을 모두 모은 문서다. gweave의 출력에서 그림 코드와 절 번호를
 # 뽑으므로(figures/figures.py) 번역 문서의 그림과 어긋나지 않는다. 제목은 figures/figures.tsv에
 # 적는다. gweave의 출력은 build/figures에 두어 mf.pdf의 mf.tex와 섞이지 않게 한다.
-# mf-figures.pdf는 저장소에 올려 두는 결과물이라 make clean으로 지우지 않는다.
 $(BUILD)/figures/mf.tex: mf.gw
 	@mkdir -p $(BUILD)/figures
 	gweave -o $(BUILD)/figures mf.gw
@@ -137,4 +136,4 @@ clean:
 	  mf-twill.tex mf-twill.log mf-twill.pdf mf-twill.toc mf-twill.ref mf-twill.mref mf-twill.smref\
 	  mf-twill-deco.tex mf-twill-deco.log mf-twill-deco.pdf mf-twill-deco.toc mf-twill-deco.ref\
 	  mf-twill-deco.mref mf-twill-deco.smref\
-	  mf-figures.tex mf-figures.log mf-figures.ref
+	  mf-figures.tex mf-figures.log mf-figures.pdf mf-figures.ref

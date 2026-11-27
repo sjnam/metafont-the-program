@@ -29,8 +29,7 @@
 | `decoframe.pdf` | `mf-deco.ch`가 쪽마다 까는 액자 그림 |
 | `mf.bux` | 미니 색인판(`make twill`)에서 `mf.gw`의 선언으로는 알 수 없는 이름들에 주는 뜻 |
 | `metalion.pdf` | 1절 끝, 그 쪽의 바닥에 붙이는 사자 그림 |
-| `mf-figures.pdf` | 번역 문서의 그림을 모두 모은 문서(`make figures`로 만든다) |
-| `figures/figures.py` | `mf-figures.pdf`의 원고를 만든다. 그림 코드와 절 번호는 gweave의 출력에서 뽑는다 |
+| `figures/figures.py` | 그림 모음 `mf-figures.pdf`(`make figures`)의 원고를 만든다. 그림 코드와 절 번호는 gweave의 출력에서 뽑는다 |
 | `figures/figures.tsv` | 그림마다 붙이는 원문의 절 번호와 한글, 영어 제목 |
 | `go.mod` | Go 모듈 정의 |
 | `tests/trap.sh` | TRAP 테스트 |
@@ -64,10 +63,10 @@
   `mf.bux`에서 얻는다. `mf.bux`의 절 번호는 `mf.gw`의 절이 늘거나 줄면 함께 고쳐야 한다.
 - `make twill-deco`(`mf-twill-deco.pdf`): 미니 색인과 액자를 함께 붙인다.
 
-그림만 모아 보려면 [`mf-figures.pdf`](mf-figures.pdf)를 보면 된다. 번역 문서의 그림 26장을 원문과
+그림만 모아 보려면 `make figures`로 `mf-figures.pdf`를 만든다. 번역 문서의 그림 26장을 원문과
 번역의 절 번호, 한글과 영어 제목과 함께 모은 것이다. 그림 코드는 `mf.gw`에서 그대로 뽑으므로 번역
-문서와 똑같이 그려진다. 그림을 고치거나 보태면 `make figures`로 다시 만든다. 그림이 `figures/figures.tsv`의
-목록과 맞지 않으면 멈추므로, 새 그림에는 그 표에 제목을 적어 주어야 한다.
+문서와 똑같이 그려진다. 그림이 `figures/figures.tsv`의 목록과 맞지 않으면 멈추므로, 새 그림에는 그 표에
+제목을 적어 주어야 한다.
 
 ### 어디서부터 읽을까
 
