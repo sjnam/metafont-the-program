@@ -72,6 +72,7 @@ def main():
 \def\title{\MF\ 그림 모음}
 \raggedbottom
 \font\titlelogo=logo10 scaled 1653
+\def\MP{{\tenlogo META}\-{\tenlogo POST}} % \MF처럼 logo10으로 찍는다
 % \figitem{그림 번호}{번역의 절}{부 제목}{한글 제목}{영어 제목}{원문의 절}
 \def\figitem#1#2#3#4#5#6{\grouptoks={#3}\setmark{#2}%
   \bigskip\goodbreak\noindent{\bf 그림~#1.}\enspace #4\hfil\break
@@ -82,14 +83,14 @@ def main():
 \centerline{한글 \.{GWEB} 판의 그림 \number''' + str(len(figs)) + r'''장}
 \bigskip
 이 문서는 커누스의 {\sl\MF: The Program}을 한국어와 \GO/로 옮긴 \.{mf.gw}에 그린
-그림을 모은 것이다(\.{https://github.com/sjnam/metafont-the-program}). 그림의 MetaPost
+그림을 모은 것이다({\tt https://github.com/sjnam/metafont-the-program}). 그림의 \MP\
 코드는 \.{mf.gw}에서 그대로 뽑았으므로 번역 문서와 똑같이 그려진다. 그림마다 그 그림이
 설명하는 원문 \.{mf.web}의 절 번호와, 그 그림이 들어 있는 번역의 절 번호를 적었다. 그림의
 설명은 번역 문서의 그 절에 있다.
 
 \medskip
 This document collects the figures drawn in \.{mf.gw}, a translation of
-Knuth's {\sl\MF: The Program} into Korean and Go. The MetaPost code of each
+Knuth's {\sl\MF: The Program} into Korean and Go. The \MP\ code of each
 figure is taken verbatim from \.{mf.gw}, so the figures are drawn exactly as in
 the translation. Each figure gives the section of the original \.{mf.web} that it
 illustrates and the section of the translation where it appears; the explanation
@@ -97,8 +98,9 @@ illustrates and the section of the translation where it appears; the explanation
 ''')
     for n, sec, part, code in figs:
         orig, ko, en = titles[n]
-        where = (r'원문에 없음, 번역 \S' if orig == '-' else
-                 r'원문 \S' + orig + r', 번역 \S') + str(sec)
+        # 칼 같은 영어 독자도 읽도록 절 번호의 꼬리표는 영어로 적는다
+        where = (r'not in the original, translation \S' if orig == '-' else
+                 r'original \S' + orig + r', translation \S') + str(sec)
         out.append(f'\\figitem{{{n}}}{{{sec}}}{{{part}}}{{{ko}}}{{{en}}}{{{where}}}')
         out.append('$$\\mplibcode' + code + '\\endmplibcode$$')
     out.append('\\bye')
