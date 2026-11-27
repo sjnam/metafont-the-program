@@ -1,0 +1,30 @@
+# 그림 모음(mf-figures.pdf)의 그림마다 붙이는 제목.
+# 칸은 탭으로 나눈다: beginfig 번호, 원문 mf.web의 절 번호(번역에서 새로 그린 그림은 -),
+# 한글 제목, 영어 제목. 제목은 TeX으로 쓴다(\ID, \KW, \. 같은 gwebmac 매크로를 쓸 수 있다).
+# 번역 문서의 절 번호는 figures.py가 gweave의 출력에서 읽으므로 여기에는 적지 않는다.
+1	-	\MF의 지도	A map of \MF
+2	116	호비의 속도 함수	Hobby's velocity function
+3	125	피타고라스 덧셈의 뒤집기	The reflection in Pythagorean addition
+4	139	팔분면과 그레이 코드	Octants and their Gray code
+5	159	배열 \ID{mem}의 두 영역	The two regions of \ID{mem}
+6	166	가변 크기 영역과 \ID{rover}	The variable-size region and \ID{rover}
+7	229	변수의 자료 구조	The data structure of variables
+8	255	베지에 곡선의 매듭과 조절점	Knots and control points of a B\'ezier curve
+9	274	매듭에서의 세 각	The three angles at a knot
+10	275	긴장에 따른 곡선	Curves with different tensions
+11	277	휨에 따른 곡선	Curves with different curls
+12	303	드 카스텔조 이분	De Casteljau bisection
+13	304	곡선을 화소로 바꾸는 룩 움직임	Rook moves that digitize a curve
+14	323	가장자리 구조	An edge structure
+15	386	경로를 팔분면으로 나누기	A path divided into octants
+16	460	윤곽 칠하기	Filling a contour
+17	470	다각형 펜의 변과 팔분면	The octants of the edges of a polygonal pen
+18	490	펜이 경로를 따라 쓸고 간 포락선	The envelope swept by a pen along a path
+19	524	지름이 1인 펜: 원과 마름모	A pen of diameter 1: circle and diamond
+20	525	호비의 동치류	Hobby's equivalence classes
+21	550	이분법으로 교차 시각 찾기	Finding intersection times by bisection
+22	866	변환된 \KW{pencircle}에서 타원 되찾기	Recovering the ellipse of a transformed \KW{pencircle}
+23	978	부분 경로 \KW{subpath}	Cutting out a \KW{subpath}
+24	1065	경로를 겹치는 \KW{doublepath}	Doubling a path for \KW{doublepath}
+25	1121	치수를 줄이는 \ID{skimp}	Reducing dimensions with \ID{skimp}
+26	1167	문자의 \.{GF} 부호화	The \.{GF} encoding of a character

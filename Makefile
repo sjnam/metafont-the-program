@@ -17,10 +17,11 @@
 #   make deco       테두리에 액자를 두른 문서(mf-deco.pdf)를 만든다
 #   make twill      쪽마다 미니 색인을 붙인 문서(mf-twill.pdf)를 gtwill로 만든다
 #   make twill-deco 미니 색인과 액자를 함께 붙인 문서(mf-twill-deco.pdf)를 만든다
+#   make figures    번역 문서의 그림을 모두 모은 문서(mf-figures.pdf)를 만든다
 
 BUILD = build
 
-.PHONY: all build pdf check base compare trap test regress pgo fuzz install uninstall clean deco twill twill-deco
+.PHONY: all build pdf check base compare trap test regress pgo fuzz install uninstall clean deco twill twill-deco figures
 
 all: build pdf
 
@@ -136,6 +137,25 @@ mf-deco.pdf: mf.gw mf-deco.ch metalion.pdf decoframe.pdf
 
 deco: mf-deco.pdf
 
+# 그림 모음은 mf.gw의 그림을 모두 모은 문서다. gweave의 출력에서 그림 코드와 절 번호를
+# 뽑으므로(figures/figures.py) 번역 문서의 그림과 어긋나지 않는다. 제목은 figures/figures.tsv에
+# 적는다. gweave의 출력은 build/figures에 두어 mf.pdf의 mf.tex와 섞이지 않게 한다.
+# mf-figures.pdf는 저장소에 올려 두는 결과물이라 make clean으로 지우지 않는다.
+$(BUILD)/figures/mf.tex: mf.gw
+	@mkdir -p $(BUILD)/figures
+	gweave -o $(BUILD)/figures mf.gw
+
+mf-figures.tex: $(BUILD)/figures/mf.tex figures/figures.py figures/figures.tsv
+	python3 figures/figures.py $(BUILD)/figures/mf.tex figures/figures.tsv >$@.tmp
+	mv $@.tmp $@
+
+mf-figures.pdf: mf-figures.tex
+	luatex --interaction=nonstopmode mf-figures.tex >/dev/null
+	@n=$$(grep -ac 'Overfull\|Underfull\|Error\|Missing\|Undefined' mf-figures.log); \
+	echo "조판 경고: $$n"; test $$n -eq 0
+
+figures: mf-figures.pdf
+
 # 미니 색인을 붙인 판은 커누스가 TWILL로 TeX: The Program을 찍은 방식을 따른다. 도구는
 # gtwill(https://github.com/sjnam/gtwill)이고, 미니 색인을 정렬하는 gtwill-refsort와
 # 매크로 gtwimac.tex가 함께 깔려 있어야 한다(gtwill 저장소에서 make install).
@@ -174,4 +194,5 @@ clean:
 	  mf-deco.tex mf-deco.log mf-deco.pdf mf-deco.toc mf-deco.ref\
 	  mf-twill.tex mf-twill.log mf-twill.pdf mf-twill.toc mf-twill.ref mf-twill.mref mf-twill.smref\
 	  mf-twill-deco.tex mf-twill-deco.log mf-twill-deco.pdf mf-twill-deco.toc mf-twill-deco.ref\
-	  mf-twill-deco.mref mf-twill-deco.smref
+	  mf-twill-deco.mref mf-twill-deco.smref\
+	  mf-figures.tex mf-figures.log mf-figures.ref
