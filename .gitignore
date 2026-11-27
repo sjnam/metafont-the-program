@@ -34,6 +34,11 @@ mf-twill-deco.ref
 mf-twill-deco.mref
 mf-twill-deco.smref
 
+# make figures: 그림 모음
+mf-figures.tex
+mf-figures.log
+mf-figures.ref
+
 .DS_Store
 
 # make trap: tests/trap.sh가 처음 돌 때 CTAN에서 받아 오는 커누스의 원본 파일들
